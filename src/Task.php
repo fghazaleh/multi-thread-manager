@@ -33,4 +33,12 @@ final class Task implements TaskInterface
     {
         return $this->context;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPid(): ?int
+    {
+        return  $this->getCommand()->getPid();
+    }
 }

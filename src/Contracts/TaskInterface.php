@@ -9,6 +9,13 @@ use Symfony\Component\Process\Process;
 interface TaskInterface
 {
     /**
+     * Returns the process pid
+     *
+     * @return null|int;
+     */
+    public function getPid(): ?int;
+
+    /**
      * @return Process
      */
     public function getCommand(): Process;
