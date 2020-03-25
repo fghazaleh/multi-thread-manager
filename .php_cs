@@ -4,9 +4,6 @@ return PhpCsFixer\Config::create()
                         ->setRiskyAllowed(true)
                         ->setRules(
                             [
-                                '@Symfony' => true,
-                                '@Symfony:risky' => true,
-                                '@PHP71Migration' => true,
                                 'array_syntax' => ['syntax' => 'short'],
                                 'dir_constant' => true,
                                 'heredoc_to_nowdoc' => true,
