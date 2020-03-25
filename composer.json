@@ -1,0 +1,37 @@
+{
+    "name": "fghazaleh/multi-process-manager",
+    "type": "library",
+    "description": "Multi-process manager using Symfony process component",
+    "license": "MTI",
+    "keywords": [
+        "Symfony process",
+        "Multi process",
+        "Async process"
+    ],
+    "authors": [
+        {
+            "name": "Franco Ghazaleh",
+            "email": "franco.ghazaleh@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.2",
+        "symfony/process": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FGhazaleh\\MultiProcessManager\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FGhazaleh\\MultiProcessManager\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "mockery/mockery": "^1.3",
+        "phpunit/phpunit": "^8.5"
+    }
+}
