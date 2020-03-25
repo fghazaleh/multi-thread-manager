@@ -6,5 +6,4 @@ namespace FGhazaleh\MultiProcessManager;
 
 final class ProcessManager
 {
-
 }

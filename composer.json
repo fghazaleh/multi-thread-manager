@@ -32,6 +32,10 @@
     },
     "require-dev": {
         "mockery/mockery": "^1.3",
-        "phpunit/phpunit": "^8.5"
+        "phpunit/phpunit": "^8.5",
+        "symfony/var-dumper": "^5.0"
+    },
+    "scripts": {
+        "csfix": "php-cs-fixer fix"
     }
 }
