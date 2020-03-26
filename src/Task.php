@@ -34,11 +34,21 @@ final class Task implements TaskInterface
         return $this->context;
     }
 
+    public function start(): void
+    {
+        $this->getCommand()->start();
+    }
+
+    public function stop(): ?int
+    {
+        return $this->getCommand()->stop();
+    }
+
     /**
      * @inheritDoc
      */
     public function getPid(): ?int
     {
-        return  $this->getCommand()->getPid();
+        return $this->getCommand()->getPid();
     }
 }

@@ -8,6 +8,10 @@ use Symfony\Component\Process\Process;
 
 interface TaskInterface
 {
+    public function start(): void;
+
+    public function stop(): ?int;
+
     /**
      * Returns the process pid
      *

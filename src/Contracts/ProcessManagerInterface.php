@@ -9,11 +9,13 @@ use Symfony\Component\Process\Process;
 interface ProcessManagerInterface
 {
     /**
+     * Adds Symfony process, shell script command or Task instance to process manager.
+     *
      * @param Process|string|TaskInterface $command
      * @param array|null $context
-     * @return ProcessManagerInterface
+     * @return void
      */
-    public function add($command, array $context = null): ProcessManagerInterface;
+    public function add($command, array $context = null): void ;
 
     /**
      * Wait for all symfony process to finish.
