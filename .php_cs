@@ -36,5 +36,5 @@ return PhpCsFixer\Config::create()
                         ->setCacheFile(__DIR__.'/.php_cs.cache')
                         ->setFinder(
                             PhpCsFixer\Finder::create()
-                                             ->in(__DIR__)
+                                             ->in(__DIR__.'/src')
                         );
