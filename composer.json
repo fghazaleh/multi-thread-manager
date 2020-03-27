@@ -36,6 +36,7 @@
         "symfony/var-dumper": "^5.0"
     },
     "scripts": {
-        "csfix": "php-cs-fixer fix"
+        "csfix": "php-cs-fixer fix",
+        "coverage": "phpunit --coverage-html"
     }
 }

@@ -95,7 +95,7 @@ final class ProcessManager implements ProcessManagerInterface
             //fire an event for task is started
             $pid = $task->getPid();
 
-            if ($pid !== null) {
+            if ($pid === null) {
                 $this->runningTasks->push($task);
             } else {
                 // The task finished before we were able to check its process id.

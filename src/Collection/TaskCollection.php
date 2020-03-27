@@ -14,14 +14,15 @@ final class TaskCollection implements \IteratorAggregate, \Countable
      * Push task to the queue.
      *
      * @param TaskInterface $task
+     * @param int|null $pid
      * @return TaskCollection
      */
-    public function push(TaskInterface $task): TaskCollection
+    public function push(TaskInterface $task, ?int $pid = null): TaskCollection
     {
-        if ($pid = $task->getPid() !== null) {
-            $this->collection[$pid] = $task;
+        if ($pid === null) {
+            array_push($this->collection, $task);
         } else {
-            array_push($this->collection, $this);
+            $this->collection[$pid] = $task;
         }
 
         return $this;
