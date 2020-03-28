@@ -4,6 +4,7 @@ return PhpCsFixer\Config::create()
                         ->setRiskyAllowed(true)
                         ->setRules(
                             [
+                                '@PSR2' => true,
                                 'array_syntax' => ['syntax' => 'short'],
                                 'dir_constant' => true,
                                 'heredoc_to_nowdoc' => true,
@@ -21,7 +22,8 @@ return PhpCsFixer\Config::create()
                                 'doctrine_annotation_braces' => true,
                                 'doctrine_annotation_indentation' => true,
                                 'doctrine_annotation_spaces' => true,
-                                'psr4' => true,
+                                'psr4' => false,
+                                'psr0' => false,
                                 'no_php4_constructor' => true,
                                 'no_short_echo_tag' => true,
                                 'semicolon_after_instruction' => true,

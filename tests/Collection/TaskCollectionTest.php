@@ -9,7 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 class TaskCollectionTest extends TestCase
 {
-
     protected function tearDown(): void
     {
         \Mockery::close();
@@ -98,8 +97,7 @@ class TaskCollectionTest extends TestCase
         $taskMock1 = \Mockery::mock(TaskInterface::class);
         $taskCollection->push($taskMock1);
 
-        foreach ($taskCollection as $item)
-        {
+        foreach ($taskCollection as $item) {
             $this->assertSame($taskMock1, $item);
         }
     }
