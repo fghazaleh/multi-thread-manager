@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiProcessManager;
 
-use FGhazaleh\MultiProcessManager\Contacts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
 use Symfony\Component\Process\Process;
 
 final class Task implements TaskInterface

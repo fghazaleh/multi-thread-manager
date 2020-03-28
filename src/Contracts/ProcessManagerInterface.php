@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager\Contacts;
+namespace FGhazaleh\MultiProcessManager\Contracts;
 
 use Symfony\Component\Process\Process;
 

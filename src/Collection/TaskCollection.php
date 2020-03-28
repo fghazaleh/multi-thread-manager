@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiProcessManager\Collection;
 
-use FGhazaleh\MultiProcessManager\Contacts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
 
 final class TaskCollection implements \IteratorAggregate, \Countable
 {
@@ -71,6 +71,6 @@ final class TaskCollection implements \IteratorAggregate, \Countable
      */
     public function getIterator()
     {
-        return $this->collection;
+        return new \ArrayIterator($this->collection);
     }
 }

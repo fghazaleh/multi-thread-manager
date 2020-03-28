@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiProcessManager;
 
 use FGhazaleh\MultiProcessManager\Collection\TaskCollection;
-use FGhazaleh\MultiProcessManager\Contacts\ProcessManagerInterface;
-use FGhazaleh\MultiProcessManager\Contacts\ProcessSettingsInterface;
-use FGhazaleh\MultiProcessManager\Contacts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerInterface;
+use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
+use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 

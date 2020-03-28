@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiProcessManager\Collection;
 
-use FGhazaleh\MultiProcessManager\Contacts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
 use PHPUnit\Framework\TestCase;
 
 class TaskCollectionTest extends TestCase
@@ -87,5 +87,20 @@ class TaskCollectionTest extends TestCase
         $taskCollection->clear();
 
         $this->assertCount(0, $taskCollection);
+    }
+
+    /**
+     * @test
+     */
+    public function itShouldAbleToIterateToCollection()
+    {
+        $taskCollection = new TaskCollection();
+        $taskMock1 = \Mockery::mock(TaskInterface::class);
+        $taskCollection->push($taskMock1);
+
+        foreach ($taskCollection as $item)
+        {
+            $this->assertSame($taskMock1, $item);
+        }
     }
 }

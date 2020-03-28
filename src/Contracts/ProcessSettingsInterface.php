@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager\Contacts;
+namespace FGhazaleh\MultiProcessManager\Contracts;
 
 interface ProcessSettingsInterface
 {

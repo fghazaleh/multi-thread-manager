@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiProcessManager;
 
-use FGhazaleh\MultiProcessManager\Contacts\ProcessSettingsInterface;
+use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
 
 final class ProcessSettings implements ProcessSettingsInterface
 {
