@@ -2,7 +2,7 @@
 <html lang="en">
  <head>
   <meta charset="UTF-8">
-  <title>Dashboard for /Users/franco.ghazaleh/Desktop/workspaces/projects/multi-process-manager/src/Collection</title>
+  <title>Dashboard for /Users/franco.ghazaleh/Desktop/workspaces/projects/multi-process-manager/src/Events</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="../_css/bootstrap.min.css" rel="stylesheet" type="text/css">
   <link href="../_css/nv.d3.min.css" rel="stylesheet" type="text/css">
@@ -17,7 +17,7 @@
       <nav aria-label="breadcrumb">
        <ol class="breadcrumb">
          <li class="breadcrumb-item"><a href="../index.html">/Users/franco.ghazaleh/Desktop/workspaces/projects/multi-process-manager/src</a></li>
-         <li class="breadcrumb-item"><a href="index.html">Collection</a></li>
+         <li class="breadcrumb-item"><a href="index.html">Events</a></li>
          <li class="breadcrumb-item active">(Dashboard)</li>
 
        </ol>
@@ -111,6 +111,7 @@
         </tr>
        </thead>
        <tbody>
+       <tr><td><a href="EventContainer.php.html#40"><abbr title="FGhazaleh\MultiProcessManager\Events\EventContainer::fire">fire</abbr></a></td><td class="text-right">88%</td></tr>
 
        </tbody>
       </table>
@@ -127,6 +128,7 @@
         </tr>
        </thead>
        <tbody>
+       <tr><td><a href="EventContainer.php.html#40"><abbr title="FGhazaleh\MultiProcessManager\Events\EventContainer::fire">fire</abbr></a></td><td class="text-right">4</td></tr>
 
        </tbody>
       </table>
@@ -155,7 +157,7 @@ $(document).ready(function() {
       .yAxis.tickFormat(d3.format('d'));
 
     d3.select('#classCoverageDistribution svg')
-      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,1], "Class Coverage"))
+      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,1,0], "Class Coverage"))
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -173,7 +175,7 @@ $(document).ready(function() {
       .yAxis.tickFormat(d3.format('d'));
 
     d3.select('#methodCoverageDistribution svg')
-      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,0,0,6], "Method Coverage"))
+      .datum(getCoverageDistributionData([0,0,0,0,0,0,0,0,0,1,0,3], "Method Coverage"))
       .transition().duration(500).call(chart);
 
     nv.utils.windowResize(chart.update);
@@ -223,7 +225,7 @@ $(document).ready(function() {
     chart.yAxis.axisLabel('Cyclomatic Complexity');
 
     d3.select('#classComplexity svg')
-      .datum(getComplexityData([[100,9,"<a href=\"TaskCollection.php.html#9\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection<\/a>"]], 'Class Complexity'))
+      .datum(getComplexityData([[95.65217391304348,10,"<a href=\"EventContainer.php.html#11\">FGhazaleh\\MultiProcessManager\\Events\\EventContainer<\/a>"]], 'Class Complexity'))
       .transition()
       .duration(500)
       .call(chart);
@@ -247,7 +249,7 @@ $(document).ready(function() {
     chart.yAxis.axisLabel('Method Complexity');
 
     d3.select('#methodComplexity svg')
-      .datum(getComplexityData([[100,3,"<a href=\"TaskCollection.php.html#20\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection::push<\/a>"],[100,2,"<a href=\"TaskCollection.php.html#37\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection::remove<\/a>"],[100,1,"<a href=\"TaskCollection.php.html#44\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection::clear<\/a>"],[100,1,"<a href=\"TaskCollection.php.html#54\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection::pull<\/a>"],[100,1,"<a href=\"TaskCollection.php.html#64\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection::count<\/a>"],[100,1,"<a href=\"TaskCollection.php.html#72\">FGhazaleh\\MultiProcessManager\\Collection\\TaskCollection::getIterator<\/a>"]], 'Method Complexity'))
+      .datum(getComplexityData([[100,3,"<a href=\"EventContainer.php.html#21\">FGhazaleh\\MultiProcessManager\\Events\\EventContainer::addListener<\/a>"],[88.88888888888889,4,"<a href=\"EventContainer.php.html#40\">FGhazaleh\\MultiProcessManager\\Events\\EventContainer::fire<\/a>"],[100,1,"<a href=\"EventContainer.php.html#56\">FGhazaleh\\MultiProcessManager\\Events\\EventContainer::getSupportedEvents<\/a>"],[100,2,"<a href=\"EventContainer.php.html#65\">FGhazaleh\\MultiProcessManager\\Events\\EventContainer::throwExceptionIfInvalid<\/a>"]], 'Method Complexity'))
       .transition()
       .duration(500)
       .call(chart);
