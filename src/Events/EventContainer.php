@@ -12,6 +12,8 @@ namespace FGhazaleh\MultiProcessManager\Events;
 use FGhazaleh\MultiProcessManager\Contracts\EventInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ListenerInterface;
 use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentExeption;
+use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
 
 final class EventContainer implements EventInterface
 {
@@ -25,11 +27,7 @@ final class EventContainer implements EventInterface
         $this->throwExceptionIfInvalid($event);
 
         if (!$listener instanceof ListenerInterface && !is_callable($listener)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    'Listener should be instance of ListenerInterface or callable function.'
-                )
-            );
+            throw new InvalidListenerArgumentException;
         }
 
         $this->events[$event] = $listener;
@@ -63,10 +61,14 @@ final class EventContainer implements EventInterface
         ];
     }
 
+    /**
+     * @param string $event
+     * @throws InvalidEventArgumentExeption
+     */
     private function throwExceptionIfInvalid(string $event): void
     {
         if (!\array_key_exists($event, $this->getSupportedEvents())) {
-            throw new \InvalidArgumentException(
+            throw new InvalidEventArgumentExeption(
                 sprintf('Invalid event [%s].', $event)
             );
         }

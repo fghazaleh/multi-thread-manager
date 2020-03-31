@@ -18,9 +18,20 @@ class ProcessManagerTest extends TestCase
     /**
      * @test
      */
-    public function testMe()
+    public function itShouldCreateProcessManagerInstanceFromStaticMethod()
     {
         $processManager = ProcessManager::create(10);
+        $this->assertInstanceOf(ProcessManagerInterface::class, $processManager);
+    }
+
+    /**
+     * @test
+     */
+    public function itShouldCreateProcessManagerInstance()
+    {
+        $processManager = new ProcessManager(
+            new ProcessSettings(10, 0, 0)
+        );
         $this->assertInstanceOf(ProcessManagerInterface::class, $processManager);
     }
 }

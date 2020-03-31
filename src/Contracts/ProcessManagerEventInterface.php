@@ -9,12 +9,16 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiProcessManager\Contracts;
 
+use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentExeption;
+use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
+
 interface ProcessManagerEventInterface
 {
     /**
      * @param string $event
      * @param callable|ListenerInterface $listener
-     * @throws \InvalidArgumentException
+     * @throws InvalidListenerArgumentException
+     * @throws InvalidEventArgumentExeption
      * @return void
      */
     public function listenOn(string $event, $listener):void ;

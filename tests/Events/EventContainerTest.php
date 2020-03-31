@@ -11,6 +11,8 @@ namespace FGhazaleh\MultiProcessManager\Events;
 
 use FGhazaleh\MultiProcessManager\Contracts\EventInterface;
 use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentExeption;
+use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
 use FGhazaleh\MultiProcessManager\Fixtures\ListenerStartedFake;
 use PHPUnit\Framework\TestCase;
 
@@ -36,9 +38,9 @@ class EventContainerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldThrowInvalidExceptionWhenAddInvalidEvent()
+    public function itShouldThrowInvalidEventExceptionWhenAddInvalidEvent()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidEventArgumentExeption::class);
         $this->expectExceptionMessage('Invalid event [fake_event].');
 
         $events = new EventContainer();
@@ -50,9 +52,9 @@ class EventContainerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldThrowInvalidExceptionWhenAddInvalidListener()
+    public function itShouldThrowInvalidListenerExceptionWhenAddInvalidListener()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidListenerArgumentException::class);
         $this->expectExceptionMessage('Listener should be instance of ListenerInterface or callable function.');
 
         $events = new EventContainer();
