@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiProcessManager\Contracts;
 
-use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentExeption;
+use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
 use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
 
 interface EventInterface
@@ -21,8 +21,8 @@ interface EventInterface
     /**
      * @param string $event
      * @param callable|ListenerInterface $listener
+     *@throws InvalidEventArgumentException
      * @throws InvalidListenerArgumentException
-     * @throws InvalidEventArgumentExeption
      * @return void
      */
     public function addListener(string $event, $listener): void;
@@ -31,7 +31,7 @@ interface EventInterface
     /**
      * @param string $event
      * @param TaskInterface $task
-     * @throws InvalidEventArgumentExeption
+     * @throws InvalidEventArgumentException
      * @return void
      */
     public function fire(string $event, TaskInterface $task): void;

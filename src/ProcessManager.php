@@ -16,6 +16,7 @@ use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
 use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
 use FGhazaleh\MultiProcessManager\Events\EventContainer;
+use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
@@ -74,7 +75,7 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
     /**
      * @inheritDoc
      */
-    public function listenOn(string $event, $listener): void
+    public function listen(string $event, $listener): void
     {
         $this->events->addListener($event, $listener);
     }
@@ -98,8 +99,10 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
             $this->runningTasks->remove($task->getPid());
         }
     }
+
     /**
      * Executes the next pending task, if the limit of parallel tasks is not yet reached.
+     * @throws InvalidEventArgumentException
      * @return void;
      */
     private function executeNextPendingTask(): void
@@ -170,6 +173,7 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
      *
      * @param int|null $pid
      * @param TaskInterface $task
+     * @throws Exception\InvalidEventArgumentException
      */
     private function checkRunningTask(?int $pid, TaskInterface $task): void
     {
@@ -187,13 +191,13 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
      * Checks whether the task already timed out.
      *
      * @param TaskInterface $task
+     * @throws InvalidEventArgumentException
      */
     private function checkTaskTimeout(TaskInterface $task): void
     {
         try {
             $task->getCommand()->checkTimeout();
         } catch (ProcessTimedOutException $exception) {
-            //handle time out
             $this->events->fire(EventInterface::EVENT_TIMEOUT, $task);
         }
     }

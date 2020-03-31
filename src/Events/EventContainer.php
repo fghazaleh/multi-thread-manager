@@ -12,7 +12,7 @@ namespace FGhazaleh\MultiProcessManager\Events;
 use FGhazaleh\MultiProcessManager\Contracts\EventInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ListenerInterface;
 use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
-use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentExeption;
+use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
 use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
 
 final class EventContainer implements EventInterface
@@ -63,12 +63,12 @@ final class EventContainer implements EventInterface
 
     /**
      * @param string $event
-     * @throws InvalidEventArgumentExeption
+     * @throws InvalidEventArgumentException
      */
     private function throwExceptionIfInvalid(string $event): void
     {
         if (!\array_key_exists($event, $this->getSupportedEvents())) {
-            throw new InvalidEventArgumentExeption(
+            throw new InvalidEventArgumentException(
                 sprintf('Invalid event [%s].', $event)
             );
         }
