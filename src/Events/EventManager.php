@@ -15,7 +15,7 @@ use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
 use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
 use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
 
-final class EventContainer implements EventInterface
+final class EventManager implements EventInterface
 {
     private $events = [];
 

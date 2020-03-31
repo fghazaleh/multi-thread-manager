@@ -15,7 +15,7 @@ use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerEventInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
 use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
-use FGhazaleh\MultiProcessManager\Events\EventContainer;
+use FGhazaleh\MultiProcessManager\Events\EventManager;
 use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
@@ -44,7 +44,7 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
         $this->processSettings = $processSettings;
         $this->pendingTasks = new TaskCollection();
         $this->runningTasks = new TaskCollection();
-        $this->events = new EventContainer();
+        $this->events = new EventManager();
     }
 
     /**

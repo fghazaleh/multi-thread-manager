@@ -16,14 +16,14 @@ use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
 use FGhazaleh\MultiProcessManager\Fixtures\ListenerStartedFake;
 use PHPUnit\Framework\TestCase;
 
-class EventContainerTest extends TestCase
+class EventManagerTest extends TestCase
 {
     /**
      * @test
      */
     public function itShouldAbleToAddEventsAndCallableMethodListeners()
     {
-        $events = new EventContainer();
+        $events = new EventManager();
 
         $events->addListener(EventInterface::EVENT_STARTED, function () {
         });
@@ -43,7 +43,7 @@ class EventContainerTest extends TestCase
         $this->expectException(InvalidEventArgumentException::class);
         $this->expectExceptionMessage('Invalid event [fake_event].');
 
-        $events = new EventContainer();
+        $events = new EventManager();
 
         $events->addListener('fake_event', function () {
         });
@@ -57,7 +57,7 @@ class EventContainerTest extends TestCase
         $this->expectException(InvalidListenerArgumentException::class);
         $this->expectExceptionMessage('Listener should be instance of ListenerInterface or callable function.');
 
-        $events = new EventContainer();
+        $events = new EventManager();
 
         $events->addListener(EventInterface::EVENT_STARTED, 'fake-listener');
     }
@@ -67,7 +67,7 @@ class EventContainerTest extends TestCase
      */
     public function itShouldFireEventStartedWithCallableListener()
     {
-        $events = new EventContainer();
+        $events = new EventManager();
 
         $taskFake = \Mockery::mock(TaskInterface::class);
         $taskFake->shouldReceive('getPid')->andReturn(123);
@@ -84,7 +84,7 @@ class EventContainerTest extends TestCase
      */
     public function itShouldFireEventStartedWithClassListener()
     {
-        $events = new EventContainer();
+        $events = new EventManager();
 
         $taskFake = \Mockery::mock(TaskInterface::class);
         $taskFake->shouldReceive('getPid')->andReturn(123);
