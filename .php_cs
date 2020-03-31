@@ -29,10 +29,10 @@ return PhpCsFixer\Config::create()
                                 'semicolon_after_instruction' => true,
                                 'align_multiline_comment' => true,
                                 'doctrine_annotation_array_assignment' => true,
-                                'general_phpdoc_annotation_remove' => ['annotations' => ["author", "package"]],
                                 'list_syntax' => ["syntax" => "short"],
                                 'phpdoc_types_order' => ['null_adjustment'=> 'always_last'],
                                 'single_line_comment_style' => true,
+                                'general_phpdoc_annotation_remove' => ['annotations' => ["package"]],
                             ]
                         )
                         ->setCacheFile(__DIR__.'/.php_cs.cache')
