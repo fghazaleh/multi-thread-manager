@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiProcessManager;
 
 use FGhazaleh\MultiProcessManager\Collection\TaskCollection;
+use FGhazaleh\MultiProcessManager\Contracts\EventInterface;
+use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerEventInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerInterface;
 use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
 use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
+use FGhazaleh\MultiProcessManager\Events\EventContainer;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
-final class ProcessManager implements ProcessManagerInterface
+final class ProcessManager implements ProcessManagerInterface, ProcessManagerEventInterface
 {
 
     /**
@@ -28,20 +31,23 @@ final class ProcessManager implements ProcessManagerInterface
      */
     private $processSettings;
 
+    private $events;
+
     public function __construct(ProcessSettingsInterface $processSettings)
     {
         $this->processSettings = $processSettings;
         $this->pendingTasks = new TaskCollection();
         $this->runningTasks = new TaskCollection();
+        $this->events = new EventContainer();
     }
 
     /**
      * Create a new instance of process manager
      *
      * @param int $thread
-     * @return ProcessManagerInterface
+     * @return ProcessManager
      */
-    public static function create(int $thread): ProcessManagerInterface
+    public static function create(int $thread): ProcessManager
     {
         return new static(
             new ProcessSettings($thread, 0, 120)
@@ -58,6 +64,14 @@ final class ProcessManager implements ProcessManagerInterface
         );
         $this->executeNextPendingTask();
         $this->checkAllRunningTasks();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function listenOn(string $event, $listener): void
+    {
+        $this->events->addListener($event, $listener);
     }
 
     /**
@@ -91,8 +105,7 @@ final class ProcessManager implements ProcessManagerInterface
             $task = $this->pendingTasks->pull();
             $task->start();
 
-            //@todo something here
-            //fire an event for task is started
+            $this->events->fire(EventInterface::EVENT_STARTED, $task);
             $pid = $task->getPid();
 
             if ($pid === null) {
@@ -148,7 +161,6 @@ final class ProcessManager implements ProcessManagerInterface
     }
 
     /**
-     * @todo fix here
      * Checks the task whether it has finished.
      *
      * @param int|null $pid
@@ -158,7 +170,7 @@ final class ProcessManager implements ProcessManagerInterface
     {
         $this->checkTaskTimeout($task);
         if (!$task->getCommand()->isRunning()) {
-            //fire an event for task is finished
+            $this->events->fire(EventInterface::EVENT_FINISHED, $task);
             if ($pid !== null) {
                 $this->runningTasks->remove($pid);
             }
@@ -167,7 +179,6 @@ final class ProcessManager implements ProcessManagerInterface
     }
 
     /**
-     * @todo fix here
      * Checks whether the task already timed out.
      *
      * @param TaskInterface $task
@@ -178,7 +189,7 @@ final class ProcessManager implements ProcessManagerInterface
             $task->getCommand()->checkTimeout();
         } catch (ProcessTimedOutException $exception) {
             //handle time out
-            //fire an event for task is timeout
+            $this->events->fire(EventInterface::EVENT_TIMEOUT, $task);
         }
     }
 

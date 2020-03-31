@@ -13,7 +13,17 @@ interface EventInterface
     /**
      * @param string $event
      * @param callable|ListenerInterface $listener
+     * @throws \InvalidArgumentException
      * @return void
      */
     public function addListener(string $event, $listener): void;
+
+
+    /**
+     * @param string $event
+     * @param TaskInterface $task
+     * @throws \InvalidArgumentException
+     * @return void
+     */
+    public function fire(string $event, TaskInterface $task): void;
 }

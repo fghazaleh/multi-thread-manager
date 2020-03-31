@@ -12,11 +12,8 @@ final class EventContainer implements EventInterface
 {
     private $events = [];
 
-
     /**
-     * @param string $event
-     * @param callable|ListenerInterface $listener
-     * @return void
+     * @inheritDoc
      */
     public function addListener(string $event, $listener): void
     {
@@ -34,9 +31,8 @@ final class EventContainer implements EventInterface
     }
 
     /**
-     * @param string $event
-     * @param TaskInterface $task
-     */
+     * @inheritDoc
+     * */
     public function fire(string $event, TaskInterface $task): void
     {
         $this->throwExceptionIfInvalid($event);
