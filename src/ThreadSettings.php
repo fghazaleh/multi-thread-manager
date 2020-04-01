@@ -1,17 +1,17 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager;
+namespace FGhazaleh\MultiThreadManager;
 
-use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
 
-final class ProcessSettings implements ProcessSettingsInterface
+final class ThreadSettings implements ThreadSettingsInterface
 {
     /**
      * @var int
@@ -20,16 +20,16 @@ final class ProcessSettings implements ProcessSettingsInterface
     /**
      * @var int
      */
-    private $processStartDelay;
+    private $threadStartDelay;
     /**
      * @var int
      */
     private $pollInterval;
 
-    public function __construct(int $threads, int $processStartDelay, int $pollInterval)
+    public function __construct(int $threads, int $threadStartDelay, int $pollInterval)
     {
         $this->setThreads($threads);
-        $this->setProcessStartDelay($processStartDelay);
+        $this->setTheadStartDelay($threadStartDelay);
         $this->setPollInterval($pollInterval);
     }
 
@@ -44,9 +44,9 @@ final class ProcessSettings implements ProcessSettingsInterface
     /**
      * @return int
      */
-    public function getProcessStartDelay(): int
+    public function getThreadStartDelay(): int
     {
-        return $this->processStartDelay;
+        return $this->threadStartDelay;
     }
 
     /**
@@ -65,12 +65,12 @@ final class ProcessSettings implements ProcessSettingsInterface
         $this->threads = $value;
     }
 
-    private function setProcessStartDelay(int $value)
+    private function setTheadStartDelay(int $value)
     {
         if ($value < 0) {
             $value = 0;
         }
-        $this->processStartDelay = $value;
+        $this->threadStartDelay = $value;
     }
 
     private function setPollInterval(int $value)

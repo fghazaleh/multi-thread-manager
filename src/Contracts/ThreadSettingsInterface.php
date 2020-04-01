@@ -1,15 +1,15 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager\Contracts;
+namespace FGhazaleh\MultiThreadManager\Contracts;
 
-interface ProcessSettingsInterface
+interface ThreadSettingsInterface
 {
     /**
      * @return int
@@ -19,7 +19,7 @@ interface ProcessSettingsInterface
     /**
      * @return int
      */
-    public function getProcessStartDelay(): int;
+    public function getThreadStartDelay(): int;
 
     /**
      * @return int

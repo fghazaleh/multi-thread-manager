@@ -1,26 +1,26 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager;
+namespace FGhazaleh\MultiThreadManager;
 
-use FGhazaleh\MultiProcessManager\Collection\TaskCollection;
-use FGhazaleh\MultiProcessManager\Contracts\EventInterface;
-use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerEventInterface;
-use FGhazaleh\MultiProcessManager\Contracts\ProcessManagerInterface;
-use FGhazaleh\MultiProcessManager\Contracts\ProcessSettingsInterface;
-use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
-use FGhazaleh\MultiProcessManager\Events\EventManager;
-use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
+use FGhazaleh\MultiThreadManager\Collection\TaskCollection;
+use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerEventInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
+use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Events\EventManager;
+use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
-final class ProcessManager implements ProcessManagerInterface, ProcessManagerEventInterface
+final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventInterface
 {
 
     /**
@@ -33,13 +33,13 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
      */
     private $runningTasks;
     /**
-     * @var ProcessSettingsInterface
+     * @var ThreadSettingsInterface
      */
     private $processSettings;
 
     private $events;
 
-    public function __construct(ProcessSettingsInterface $processSettings)
+    public function __construct(ThreadSettingsInterface $processSettings)
     {
         $this->processSettings = $processSettings;
         $this->pendingTasks = new TaskCollection();
@@ -51,12 +51,12 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
      * Create a new instance of process manager
      *
      * @param int $thread
-     * @return ProcessManager
+     * @return ThreadManager
      */
-    public static function create(int $thread): ProcessManager
+    public static function create(int $thread): ThreadManager
     {
         return new static(
-            new ProcessSettings($thread, 0, 120)
+            new ThreadSettings($thread, 0, 120)
         );
     }
 
@@ -108,7 +108,7 @@ final class ProcessManager implements ProcessManagerInterface, ProcessManagerEve
     private function executeNextPendingTask(): void
     {
         if ($this->canExecuteNextPendingTask()) {
-            $this->sleep($this->processSettings->getProcessStartDelay());
+            $this->sleep($this->processSettings->getThreadStartDelay());
 
             $task = $this->pendingTasks->pull();
             $task->start();

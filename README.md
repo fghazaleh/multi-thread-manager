@@ -6,19 +6,19 @@ by creating a command which can be handled in asynchronous (threads).
 # WARNING: This library is under development.
 
 ## Usage
-### Multi Process Manager
-creating instance of `ProcessManager`.
+### Multi Thread Manager
+creating instance of `ThreadManager`.
 ```php
 $threads = 10;
-$processManager = \FGhazaleh\MultiProcessManager\ProcessManager::create($threads);
+$threadManager = \FGhazaleh\MultiThreadManager\ThreadManager::create($threads);
 ```
 or
 ```php
 $threads = 10;
 $processStartDelay = 1; 
 $pollInterval = 120;
-$processManager = new \FGhazaleh\MultiProcessManager\ProcessManager(
-                        new \FGhazaleh\MultiProcessManager\ProcessSettings(
+$threadManager = new \FGhazaleh\MultiThreadManager\ThreadManager(
+                        new \FGhazaleh\MultiThreadManager\ThreadSettings(
                             $threads, $processStartDelay, $pollInterval
                         )               
                   );

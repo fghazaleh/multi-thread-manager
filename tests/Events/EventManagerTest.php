@@ -1,19 +1,19 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager\Events;
+namespace FGhazaleh\MultiThreadManager\Events;
 
-use FGhazaleh\MultiProcessManager\Contracts\EventInterface;
-use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
-use FGhazaleh\MultiProcessManager\Exception\InvalidEventArgumentException;
-use FGhazaleh\MultiProcessManager\Exception\InvalidListenerArgumentException;
-use FGhazaleh\MultiProcessManager\Fixtures\ListenerStartedFake;
+use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
+use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
+use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
+use FGhazaleh\MultiThreadManager\Fixtures\ListenerStartedFake;
 use PHPUnit\Framework\TestCase;
 
 class EventManagerTest extends TestCase

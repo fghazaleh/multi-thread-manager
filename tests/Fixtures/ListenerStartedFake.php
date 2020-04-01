@@ -1,16 +1,16 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager\Fixtures;
+namespace FGhazaleh\MultiThreadManager\Fixtures;
 
-use FGhazaleh\MultiProcessManager\Contracts\ListenerInterface;
-use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ListenerInterface;
+use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
 use PHPUnit\Framework\Assert;
 
 final class ListenerStartedFake implements ListenerInterface

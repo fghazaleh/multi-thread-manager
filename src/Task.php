@@ -1,15 +1,15 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager;
+namespace FGhazaleh\MultiThreadManager;
 
-use FGhazaleh\MultiProcessManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
 use Symfony\Component\Process\Process;
 
 final class Task implements TaskInterface

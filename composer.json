@@ -23,12 +23,12 @@
     },
     "autoload": {
         "psr-4": {
-            "FGhazaleh\\MultiProcessManager\\": "src/"
+            "FGhazaleh\\MultiThreadManager\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "FGhazaleh\\MultiProcessManager\\": "tests/"
+            "FGhazaleh\\MultiThreadManager\\": "tests/"
         }
     },
     "require-dev": {

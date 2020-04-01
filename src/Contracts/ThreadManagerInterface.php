@@ -1,17 +1,17 @@
 <?php
 /**
- * Multi Processing Manager (PHP package)
+ * Multi Threading Manager (PHP package)
  *
  * @author Franco Ghazaleh <franco.ghazaleh@gmail.com>
  */
 
 declare(strict_types=1);
 
-namespace FGhazaleh\MultiProcessManager\Contracts;
+namespace FGhazaleh\MultiThreadManager\Contracts;
 
 use Symfony\Component\Process\Process;
 
-interface ProcessManagerInterface
+interface ThreadManagerInterface
 {
     /**
      * Adds Symfony process, shell script command or Task instance to process manager.
