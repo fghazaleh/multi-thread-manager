@@ -1,4 +1,4 @@
-# Multi Process Manager
+# Multi Thead Manager
 
 A Library to handle a multiple Symfony process component, 
 by creating a command which can be handled in asynchronous (threads).

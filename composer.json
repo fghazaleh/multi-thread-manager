@@ -1,10 +1,11 @@
 {
-    "name": "fghazaleh/multi-process-manager",
+    "name": "fghazaleh/multi-thread-manager",
     "type": "library",
-    "description": "Multi-process manager using Symfony process component",
+    "description": "Multi-thread manager using Symfony process component",
     "license": "MTI",
     "keywords": [
         "Symfony process",
+        "Multi thread",
         "Multi process",
         "Async process"
     ],
