@@ -14,9 +14,9 @@ interface ListenerInterface
     /**
      * Handles the received event.
      *
-     * @param TaskInterface $task
+     * @param ThreadInterface $task
      *
      * @return void
      */
-    public function handle(TaskInterface $task): void;
+    public function handle(ThreadInterface $task): void;
 }

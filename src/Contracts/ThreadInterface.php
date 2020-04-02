@@ -11,7 +11,7 @@ namespace FGhazaleh\MultiThreadManager\Contracts;
 
 use Symfony\Component\Process\Process;
 
-interface TaskInterface
+interface ThreadInterface
 {
     public function start(): void;
 
@@ -27,7 +27,7 @@ interface TaskInterface
     /**
      * @return Process
      */
-    public function getCommand(): Process;
+    public function getSymfonyProcess(): Process;
 
     /**
      * @return array|null

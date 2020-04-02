@@ -9,12 +9,12 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager;
 
-use FGhazaleh\MultiThreadManager\Collection\TaskCollection;
+use FGhazaleh\MultiThreadManager\Collection\ThreadCollection;
 use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerEventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
-use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
 use FGhazaleh\MultiThreadManager\Events\EventManager;
 use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
@@ -24,14 +24,14 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
 {
 
     /**
-     * @var TaskCollection;
+     * @var ThreadCollection;
      */
-    private $pendingTasks;
+    private $pendingThreads;
 
     /**
-     * @var TaskCollection;
+     * @var ThreadCollection;
      */
-    private $runningTasks;
+    private $runningThreads;
     /**
      * @var ThreadSettingsInterface
      */
@@ -42,21 +42,21 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     public function __construct(ThreadSettingsInterface $processSettings)
     {
         $this->processSettings = $processSettings;
-        $this->pendingTasks = new TaskCollection();
-        $this->runningTasks = new TaskCollection();
+        $this->pendingThreads = new ThreadCollection();
+        $this->runningThreads = new ThreadCollection();
         $this->events = new EventManager();
     }
 
     /**
-     * Create a new instance of process manager
+     * Create a new instance of thread manager
      *
-     * @param int $thread
+     * @param int $threadSize
      * @return ThreadManager
      */
-    public static function create(int $thread): ThreadManager
+    public static function create(int $threadSize): ThreadManager
     {
         return new static(
-            new ThreadSettings($thread, 0, 120)
+            new ThreadSettings($threadSize, 0, 120)
         );
     }
 
@@ -65,11 +65,11 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      */
     public function add($command, array $context = null): void
     {
-        $this->pendingTasks->push(
-            $this->createTask($command, $context)
+        $this->pendingThreads->push(
+            $this->createThread($command, $context)
         );
-        $this->executeNextPendingTask();
-        $this->checkAllRunningTasks();
+        $this->executeNextPendingThread();
+        $this->checkAllRunningThreads();
     }
 
     /**
@@ -90,115 +90,112 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
 
     public function terminate(): void
     {
-        $this->pendingTasks->clear();
+        $this->pendingThreads->clear();
         /**
-         * @var TaskInterface $task
+         * @var ThreadInterface $thread
          * */
-        foreach ($this->runningTasks as $task) {
-            $task->stop();
-            $this->runningTasks->remove($task->getPid());
+        foreach ($this->runningThreads as $thread) {
+            $thread->stop();
+            $this->runningThreads->remove($thread->getPid());
         }
     }
 
     /**
-     * Executes the next pending task, if the limit of parallel tasks is not yet reached.
+     * Executes the next pending thread, if the limit of parallel tasks is not yet reached.
      * @throws InvalidEventArgumentException
      * @return void;
      */
-    private function executeNextPendingTask(): void
+    private function executeNextPendingThread(): void
     {
-        if ($this->canExecuteNextPendingTask()) {
+        if ($this->canExecuteNextPendingThread()) {
             $this->sleep($this->processSettings->getThreadStartDelay());
 
-            $task = $this->pendingTasks->pull();
-            $task->start();
+            $thread = $this->pendingThreads->pull();
+            $thread->start();
 
-            $this->events->fire(EventInterface::EVENT_STARTED, $task);
-            $pid = $task->getPid();
+            $this->events->fire(EventInterface::EVENT_STARTED, $thread);
+            $pid = $thread->getPid();
 
             if ($pid === null) {
-                $this->runningTasks->push($task);
+                $this->runningThreads->push($thread);
             } else {
                 // The task finished before we were able to check its process id.
-                $this->checkRunningTask($pid, $task);
+                $this->checkRunningThread($pid, $thread);
             }
         }
     }
 
     /**
-     * Creates a task instance based on the command param.
+     * Creates a thread instance based on the command param.
      *
      * @param $command
      * @param array|null $context
-     * @return TaskInterface
+     * @return ThreadInterface
      */
-    private function createTask($command, array $context = null): TaskInterface
+    private function createThread($command, array $context = null): ThreadInterface
     {
-        if ($command instanceof TaskInterface) {
+        if ($command instanceof ThreadInterface) {
             return $command;
         } elseif ($command instanceof Process) {
-            return new Task($command, $context);
+            return new Thread($command, $context);
         } elseif (\is_string($command)) {
-            return new Task(
-                Process::fromShellCommandline($command),
-                $context
-            );
+            return Thread::createFromCommand($command, $context);
         }
         throw new \InvalidArgumentException('Invalid command');
     }
 
     /**
-     * Checks whether a pending task is available and can be executed.
+     * Checks whether a pending thread is available and can be executed.
      *
      * @return bool
      */
-    private function canExecuteNextPendingTask(): bool
+    private function canExecuteNextPendingThread(): bool
     {
-        return $this->pendingTasks->count() > 0 &&
-            $this->runningTasks->count() < $this->processSettings->getThreads();
+        return $this->pendingThreads->count() > 0 &&
+            $this->runningThreads->count() < $this->processSettings->getThreadSize();
     }
 
     /**
-     * Checks the running tasks whether they have finished.
+     * Checks the running threads whether they have finished.
      */
-    private function checkAllRunningTasks(): void
+    private function checkAllRunningThreads(): void
     {
-        foreach ($this->runningTasks as $pid => $task) {
-            $this->checkRunningTask($pid, $task);
+        foreach ($this->runningThreads as $pid => $thread) {
+            $this->checkRunningThread($pid, $thread);
         }
     }
 
     /**
-     * Checks the task whether it has finished.
+     * Checks the thread whether it has finished.
      *
      * @param int|null $pid
-     * @param TaskInterface $task
+     * @param ThreadInterface $thread
      * @throws Exception\InvalidEventArgumentException
      */
-    private function checkRunningTask(?int $pid, TaskInterface $task): void
+    private function checkRunningThread(?int $pid, ThreadInterface $thread): void
     {
-        $this->checkTaskTimeout($task);
-        if (!$task->getCommand()->isRunning()) {
-            $this->events->fire(EventInterface::EVENT_FINISHED, $task);
+        $this->checkTaskTimeout($thread);
+        if (!$thread->getSymfonyProcess()->isRunning()) {
+            $this->events->fire(EventInterface::EVENT_FINISHED, $thread);
             if ($pid !== null) {
-                $this->runningTasks->remove($pid);
+                $this->runningThreads->remove($pid);
             }
-            $this->executeNextPendingTask();
+            $this->executeNextPendingThread();
         }
     }
 
     /**
      * Checks whether the task already timed out.
      *
-     * @param TaskInterface $task
+     * @param ThreadInterface $thread
      * @throws InvalidEventArgumentException
      */
-    private function checkTaskTimeout(TaskInterface $task): void
+    private function checkTaskTimeout(ThreadInterface $thread): void
     {
         try {
-            $task->getCommand()->checkTimeout();
+            $thread->getSymfonyProcess()->checkTimeout();
         } catch (ProcessTimedOutException $exception) {
-            $this->events->fire(EventInterface::EVENT_TIMEOUT, $task);
+            $this->events->fire(EventInterface::EVENT_TIMEOUT, $thread);
         }
     }
 

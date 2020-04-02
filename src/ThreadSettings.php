@@ -16,7 +16,7 @@ final class ThreadSettings implements ThreadSettingsInterface
     /**
      * @var int
      */
-    private $threads;
+    private $threadSize;
     /**
      * @var int
      */
@@ -26,9 +26,9 @@ final class ThreadSettings implements ThreadSettingsInterface
      */
     private $pollInterval;
 
-    public function __construct(int $threads, int $threadStartDelay, int $pollInterval)
+    public function __construct(int $threadSize, int $threadStartDelay, int $pollInterval)
     {
-        $this->setThreads($threads);
+        $this->setThreads($threadSize);
         $this->setTheadStartDelay($threadStartDelay);
         $this->setPollInterval($pollInterval);
     }
@@ -36,9 +36,9 @@ final class ThreadSettings implements ThreadSettingsInterface
     /**
      * @return int
      */
-    public function getThreads(): int
+    public function getThreadSize(): int
     {
-        return $this->threads;
+        return $this->threadSize;
     }
 
     /**
@@ -62,7 +62,7 @@ final class ThreadSettings implements ThreadSettingsInterface
         if ($value < 0 || $value > 20) {
             $value = 20;
         }
-        $this->threads = $value;
+        $this->threadSize = $value;
     }
 
     private function setTheadStartDelay(int $value)

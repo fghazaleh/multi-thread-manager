@@ -18,12 +18,12 @@ class ThreadSettingsTest extends TestCase
      */
     public function testingThreadSettings()
     {
-        $threads = 10;
+        $threadSize = 10;
         $threadStartDelay = 2;
         $pollInterval = 150;
-        $threadSettings = new ThreadSettings($threads, $threadStartDelay, $pollInterval);
+        $threadSettings = new ThreadSettings($threadSize, $threadStartDelay, $pollInterval);
 
-        $this->assertSame($threadSettings->getThreads(), $threads);
+        $this->assertSame($threadSettings->getThreadSize(), $threadSize);
         $this->assertSame($threadSettings->getThreadStartDelay(), $threadStartDelay);
         $this->assertSame($threadSettings->getPollInterval(), $pollInterval);
     }
@@ -33,12 +33,12 @@ class ThreadSettingsTest extends TestCase
      */
     public function testingThreadSettingsWithLessThanZero()
     {
-        $threads = -1;
+        $threadSize = -1;
         $threadStartDelay = -1;
         $pollInterval = -1;
-        $threadSettings = new ThreadSettings($threads, $threadStartDelay, $pollInterval);
+        $threadSettings = new ThreadSettings($threadSize, $threadStartDelay, $pollInterval);
 
-        $this->assertSame($threadSettings->getThreads(), 20);
+        $this->assertSame($threadSettings->getThreadSize(), 20);
         $this->assertSame($threadSettings->getThreadStartDelay(), 0);
         $this->assertSame($threadSettings->getPollInterval(), 0);
     }

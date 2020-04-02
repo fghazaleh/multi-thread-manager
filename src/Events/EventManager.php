@@ -11,7 +11,7 @@ namespace FGhazaleh\MultiThreadManager\Events;
 
 use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ListenerInterface;
-use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
 use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
 
@@ -36,7 +36,7 @@ final class EventManager implements EventInterface
     /**
      * @inheritDoc
      * */
-    public function fire(string $event, TaskInterface $task): void
+    public function fire(string $event, ThreadInterface $task): void
     {
         $this->throwExceptionIfInvalid($event);
 

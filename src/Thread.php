@@ -9,10 +9,10 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager;
 
-use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use Symfony\Component\Process\Process;
 
-final class Task implements TaskInterface
+class Thread implements ThreadInterface
 {
     /**
      * @var Process
@@ -29,7 +29,12 @@ final class Task implements TaskInterface
         $this->context = $context;
     }
 
-    public function getCommand(): Process
+    public static function createFromCommand(string $command, array $context):ThreadInterface
+    {
+        return new static(Process::fromShellCommandline($command),$context);
+    }
+
+    public function getSymfonyProcess(): Process
     {
         return $this->command;
     }
@@ -41,12 +46,12 @@ final class Task implements TaskInterface
 
     public function start(): void
     {
-        $this->getCommand()->start();
+        $this->getSymfonyProcess()->start();
     }
 
     public function stop(): ?int
     {
-        return $this->getCommand()->stop();
+        return $this->getSymfonyProcess()->stop();
     }
 
     /**
@@ -54,6 +59,6 @@ final class Task implements TaskInterface
      */
     public function getPid(): ?int
     {
-        return $this->getCommand()->getPid();
+        return $this->getSymfonyProcess()->getPid();
     }
 }

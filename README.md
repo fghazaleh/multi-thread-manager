@@ -9,17 +9,17 @@ by creating a command which can be handled in asynchronous (threads).
 ### Multi Thread Manager
 creating instance of `ThreadManager`.
 ```php
-$threads = 10;
-$threadManager = \FGhazaleh\MultiThreadManager\ThreadManager::create($threads);
+$threadSize = 10;
+$threadManager = \FGhazaleh\MultiThreadManager\ThreadManager::create($threadSize);
 ```
 or
 ```php
-$threads = 10;
-$processStartDelay = 1; 
-$pollInterval = 120;
+$threadSize = 10;
+$threadStartDelay = 1; //milliseconds
+$pollInterval = 120; //milliseconds
 $threadManager = new \FGhazaleh\MultiThreadManager\ThreadManager(
                         new \FGhazaleh\MultiThreadManager\ThreadSettings(
-                            $threads, $processStartDelay, $pollInterval
+                            $threadSize, $threadStartDelay, $pollInterval
                         )               
                   );
 ```

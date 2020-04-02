@@ -16,7 +16,7 @@ interface ThreadManagerInterface
     /**
      * Adds Symfony process, shell script command or Task instance to process manager.
      *
-     * @param Process|string|TaskInterface $command
+     * @param Process|string|ThreadInterface $command
      * @param array|null $context
      * @return void
      */

@@ -9,20 +9,20 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Collection;
 
-use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 
-final class TaskCollection implements \IteratorAggregate, \Countable
+final class ThreadCollection implements \IteratorAggregate, \Countable
 {
     private $collection = [];
 
     /**
-     * Push task to the queue.
+     * Push thread to the queue.
      *
-     * @param TaskInterface $task
+     * @param ThreadInterface $task
      * @param int|null $pid
-     * @return TaskCollection
+     * @return ThreadCollection
      */
-    public function push(TaskInterface $task, ?int $pid = null): TaskCollection
+    public function push(ThreadInterface $task, ?int $pid = null): ThreadCollection
     {
         if ($pid === null) {
             array_push($this->collection, $task);
@@ -34,7 +34,7 @@ final class TaskCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Remove the task from the collection if the pid exists.
+     * Remove the thread from the collection if the pid exists.
      *
      * @param int $pid
      * @return void
@@ -52,11 +52,11 @@ final class TaskCollection implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Pulls the first task from the queue.
+     * Pulls the first thread from the queue.
      *
-     * @return TaskInterface
+     * @return ThreadInterface
      */
-    public function pull(): TaskInterface
+    public function pull(): ThreadInterface
     {
         return array_shift($this->collection);
     }

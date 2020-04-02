@@ -30,9 +30,9 @@ interface EventInterface
 
     /**
      * @param string $event
-     * @param TaskInterface $task
-     * @throws InvalidEventArgumentException
+     * @param ThreadInterface $task
+     *@throws InvalidEventArgumentException
      * @return void
      */
-    public function fire(string $event, TaskInterface $task): void;
+    public function fire(string $event, ThreadInterface $task): void;
 }

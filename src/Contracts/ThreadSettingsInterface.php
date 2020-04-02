@@ -14,7 +14,7 @@ interface ThreadSettingsInterface
     /**
      * @return int
      */
-    public function getThreads(): int;
+    public function getThreadSize(): int;
 
     /**
      * @return int

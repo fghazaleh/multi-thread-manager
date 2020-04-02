@@ -11,7 +11,7 @@ namespace FGhazaleh\MultiThreadManager;
 
 use PHPUnit\Framework\TestCase;
 
-class TaskTest extends TestCase
+class ThreadTest extends TestCase
 {
     /**
      * @test

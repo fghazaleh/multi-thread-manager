@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager\Events;
 
 use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
-use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
 use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
 use FGhazaleh\MultiThreadManager\Fixtures\ListenerStartedFake;
@@ -69,10 +69,10 @@ class EventManagerTest extends TestCase
     {
         $events = new EventManager();
 
-        $taskFake = \Mockery::mock(TaskInterface::class);
+        $taskFake = \Mockery::mock(ThreadInterface::class);
         $taskFake->shouldReceive('getPid')->andReturn(123);
 
-        $events->addListener(EventInterface::EVENT_STARTED, function (TaskInterface $task) {
+        $events->addListener(EventInterface::EVENT_STARTED, function (ThreadInterface $task) {
             $this->assertSame(123, $task->getPid());
         });
 
@@ -86,7 +86,7 @@ class EventManagerTest extends TestCase
     {
         $events = new EventManager();
 
-        $taskFake = \Mockery::mock(TaskInterface::class);
+        $taskFake = \Mockery::mock(ThreadInterface::class);
         $taskFake->shouldReceive('getPid')->andReturn(123);
 
         $startedFakeListener = new ListenerStartedFake();

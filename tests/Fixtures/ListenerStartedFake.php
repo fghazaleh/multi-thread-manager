@@ -10,27 +10,27 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager\Fixtures;
 
 use FGhazaleh\MultiThreadManager\Contracts\ListenerInterface;
-use FGhazaleh\MultiThreadManager\Contracts\TaskInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use PHPUnit\Framework\Assert;
 
 final class ListenerStartedFake implements ListenerInterface
 {
     /**
-     * @var TaskInterface
+     * @var ThreadInterface
      */
     private $task = null;
 
     /**
      * @inheritDoc
      */
-    public function handle(TaskInterface $task): void
+    public function handle(ThreadInterface $task): void
     {
         $this->task = $task;
     }
 
     public function assertHandled():void
     {
-        Assert::assertInstanceOf(TaskInterface::class, $this->task);
+        Assert::assertInstanceOf(ThreadInterface::class, $this->task);
     }
 
     public function assertPid(int $pid):void
