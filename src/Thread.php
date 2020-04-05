@@ -23,13 +23,13 @@ class Thread implements ThreadInterface
      */
     private $context;
 
-    public function __construct(Process $command, array $context)
+    public function __construct(Process $command, array $context = null)
     {
         $this->command = $command;
         $this->context = $context;
     }
 
-    public static function createFromCommand(string $command, array $context):ThreadInterface
+    public static function createFromCommand(string $command, array $context = null):ThreadInterface
     {
         return new static(Process::fromShellCommandline($command),$context);
     }

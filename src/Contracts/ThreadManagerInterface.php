@@ -14,13 +14,13 @@ use Symfony\Component\Process\Process;
 interface ThreadManagerInterface
 {
     /**
-     * Adds Symfony process, shell script command or Task instance to process manager.
+     * Adds Symfony process, shell script command or Thread instance to thread manager.
      *
      * @param Process|string|ThreadInterface $command
      * @param array|null $context
      * @return void
      */
-    public function add($command, array $context = null): void ;
+    public function addThread($command, array $context = null): void ;
 
     /**
      * Wait for all symfony process to finish.

@@ -35,13 +35,13 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     /**
      * @var ThreadSettingsInterface
      */
-    private $processSettings;
+    private $threadSettings;
 
     private $events;
 
-    public function __construct(ThreadSettingsInterface $processSettings)
+    public function __construct(ThreadSettingsInterface $threadSettings)
     {
-        $this->processSettings = $processSettings;
+        $this->threadSettings = $threadSettings;
         $this->pendingThreads = new ThreadCollection();
         $this->runningThreads = new ThreadCollection();
         $this->events = new EventManager();
@@ -63,7 +63,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     /**
      * {@inheritdoc}
      */
-    public function add($command, array $context = null): void
+    public function addThread($command, array $context = null): void
     {
         $this->pendingThreads->push(
             $this->createThread($command, $context)
@@ -85,7 +85,10 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      */
     public function wait(): void
     {
-        // TODO: Implement wait() method.
+        while ($this->hasUnfinishedThreads()) {
+            $this->sleep($this->threadSettings->getPollInterval());
+            $this->checkAllRunningThreads();
+        }
     }
 
     public function terminate(): void
@@ -101,14 +104,25 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     }
 
     /**
+     * Returns whether the manager still has unfinished threads.
+     *
+     * @return bool
+     */
+    public function hasUnfinishedThreads(): bool
+    {
+        return $this->pendingThreads->count() > 0 || $this->runningThreads->count() > 0;
+    }
+
+    /**
      * Executes the next pending thread, if the limit of parallel tasks is not yet reached.
+     *
      * @throws InvalidEventArgumentException
      * @return void;
      */
     private function executeNextPendingThread(): void
     {
         if ($this->canExecuteNextPendingThread()) {
-            $this->sleep($this->processSettings->getThreadStartDelay());
+            $this->sleep($this->threadSettings->getThreadStartDelay());
 
             $thread = $this->pendingThreads->pull();
             $thread->start();
@@ -117,10 +131,10 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             $pid = $thread->getPid();
 
             if ($pid === null) {
-                $this->runningThreads->push($thread);
-            } else {
                 // The task finished before we were able to check its process id.
                 $this->checkRunningThread($pid, $thread);
+            } else {
+                $this->runningThreads->push($thread);
             }
         }
     }
@@ -152,7 +166,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     private function canExecuteNextPendingThread(): bool
     {
         return $this->pendingThreads->count() > 0 &&
-            $this->runningThreads->count() < $this->processSettings->getThreadSize();
+            $this->runningThreads->count() < $this->threadSettings->getThreadSize();
     }
 
     /**
