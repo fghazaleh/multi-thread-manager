@@ -15,8 +15,6 @@
             "email": "franco.ghazaleh@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "require": {
         "php": "^7.2",
         "symfony/process": "^5.0"
