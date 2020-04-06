@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Contracts;
 
+use FGhazaleh\MultiThreadManager\Exception\InvalidThreadException;
 use Symfony\Component\Process\Process;
 
 interface ThreadManagerInterface
@@ -18,6 +19,7 @@ interface ThreadManagerInterface
      *
      * @param Process|string|ThreadInterface $command
      * @param array|null $context
+     * @throws InvalidThreadException
      * @return void
      */
     public function addThread($command, array $context = null): void ;

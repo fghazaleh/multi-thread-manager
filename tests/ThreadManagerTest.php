@@ -12,6 +12,7 @@ namespace FGhazaleh\MultiThreadManager;
 use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
+use FGhazaleh\MultiThreadManager\Exception\InvalidThreadException;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
 
@@ -23,8 +24,8 @@ class ThreadManagerTest extends TestCase
      */
     public function itShouldCreateThreadManagerInstanceFromStaticMethod()
     {
-        $processManager = ThreadManager::create(10);
-        $this->assertInstanceOf(ThreadManagerInterface::class, $processManager);
+        $threadManager = ThreadManager::create(10);
+        $this->assertInstanceOf(ThreadManagerInterface::class, $threadManager);
     }
 
     /**
@@ -32,10 +33,10 @@ class ThreadManagerTest extends TestCase
      */
     public function itShouldCreateThreadsManagerInstance()
     {
-        $processManager = new ThreadManager(
+        $threadManager = new ThreadManager(
             new ThreadSettings(10, 0, 0)
         );
-        $this->assertInstanceOf(ThreadManagerInterface::class, $processManager);
+        $this->assertInstanceOf(ThreadManagerInterface::class, $threadManager);
     }
 
     /**
@@ -45,18 +46,18 @@ class ThreadManagerTest extends TestCase
     {
         $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
 
-        $processManager = ThreadManager::create(1);
+        $threadManager = ThreadManager::create(1);
 
-        $processManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
+        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame($testingCommand, $process->getCommandLine());
         });
 
-        $processManager->addThread($testingCommand);
-        $processManager->wait();
+        $threadManager->addThread($testingCommand);
+        $threadManager->wait();
 
-        $this->assertFalse($processManager->hasUnfinishedThreads());
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
     }
 
     /**
@@ -66,19 +67,19 @@ class ThreadManagerTest extends TestCase
     {
         $testingCommand = 'php -r "echo \'FRANCO\';usleep(500);exit(0);"';
 
-        $processManager = ThreadManager::create(1);
+        $threadManager = ThreadManager::create(1);
 
-        $processManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
+        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame('FRANCO', $process->getOutput());
             $this->assertSame($testingCommand, $process->getCommandLine());
         });
 
-        $processManager->addThread(Process::fromShellCommandline($testingCommand));
-        $processManager->wait();
+        $threadManager->addThread(Process::fromShellCommandline($testingCommand));
+        $threadManager->wait();
 
-        $this->assertFalse($processManager->hasUnfinishedThreads());
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
     }
 
     /**
@@ -89,9 +90,9 @@ class ThreadManagerTest extends TestCase
         $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
         $testingContext = ['data' => 123];
 
-        $processManager = ThreadManager::create(1);
+        $threadManager = ThreadManager::create(1);
 
-        $processManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand, $testingContext) {
+        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand, $testingContext) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame($testingCommand, $process->getCommandLine());
@@ -99,10 +100,49 @@ class ThreadManagerTest extends TestCase
             $this->assertSame(123, $thread->getContext()['data']);
         });
 
-        $processManager->addThread($testingCommand, $testingContext);
-        $processManager->wait();
+        $threadManager->addThread($testingCommand, $testingContext);
+        $threadManager->wait();
 
-        $this->assertFalse($processManager->hasUnfinishedThreads());
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
+    }
+
+    /**
+     * @test
+     */
+    public function itShouldAbleToAddThreadClass()
+    {
+        $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
+        $thread = new class($testingCommand) extends Thread {
+            public function __construct(string $command)
+            {
+                parent::__construct(Process::fromShellCommandline($command), []);
+            }
+        };
+
+        $threadManager = ThreadManager::create(1);
+
+        //assertion
+        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
+            $process = $thread->getSymfonyProcess();
+            $this->assertSame(0, $process->getExitCode());
+            $this->assertSame($testingCommand, $process->getCommandLine());
+        });
+
+        $threadManager->addThread($thread);
+        $threadManager->wait();
+        //assertion
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
+    }
+    /**
+     * @test
+     */
+    public function itShouldThrowInvalidThreadExceptionWhenAddingInvalidThreadType()
+    {
+        $this->expectException(InvalidThreadException::class);
+        $this->expectExceptionMessage('Invalid thread type.');
+
+        $threadManager = ThreadManager::create(1);
+        $threadManager->addThread(new \stdClass());
     }
 
     /**
@@ -111,20 +151,36 @@ class ThreadManagerTest extends TestCase
     public function itShouldFireTimeoutEventWhenThreadIsTimeout()
     {
         $testingCommand = 'php -r "echo 1;sleep(500);exit(0);"';
-        $processManager = ThreadManager::create(1);
+        $threadManager = ThreadManager::create(1);
 
         $process = Process::fromShellCommandline($testingCommand, null, null);
         $process->setTimeout(0.5);
 
-        $processManager->listen(EventInterface::EVENT_TIMEOUT, function (ThreadInterface $thread) {
+        $threadManager->listen(EventInterface::EVENT_TIMEOUT, function (ThreadInterface $thread) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(143, $process->getExitCode());
             $this->assertTrue($process->isTerminated());
         });
 
-        $processManager->addThread($process);
-        $processManager->wait();
+        $threadManager->addThread($process);
+        $threadManager->wait();
 
-        $this->assertFalse($processManager->hasUnfinishedThreads());
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
+    }
+
+    /**
+     * @test
+     */
+    public function itShouldAbleToTerminateAllThreads()
+    {
+        $threadManager = ThreadManager::create(2);
+        $threadManager->addThread('php -r "echo 1;usleep(4000);exit(0);"');
+        $threadManager->addThread('php -r "echo 2;usleep(1000);exit(0);"');
+
+        $this->assertTrue($threadManager->hasUnfinishedThreads());
+
+        $threadManager->terminate();
+
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
     }
 }

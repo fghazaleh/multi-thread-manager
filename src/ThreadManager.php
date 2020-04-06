@@ -17,6 +17,7 @@ use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
 use FGhazaleh\MultiThreadManager\Events\EventManager;
 use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
+use FGhazaleh\MultiThreadManager\Exception\InvalidThreadException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
@@ -98,9 +99,15 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
          * @var ThreadInterface $thread
          * */
         foreach ($this->runningThreads as $thread) {
+            $pid = $thread->getPid();
             $thread->stop();
-            $this->runningThreads->remove($thread->getPid());
+            if ($pid === null) {
+                continue;
+            }
+            $this->runningThreads->remove($pid);
         }
+
+        $this->runningThreads->clear();
     }
 
     /**
@@ -144,6 +151,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      *
      * @param $command
      * @param array|null $context
+     * @throws InvalidThreadException
      * @return ThreadInterface
      */
     private function createThread($command, array $context = null): ThreadInterface
@@ -155,7 +163,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
         } elseif (\is_string($command)) {
             return Thread::createFromCommand($command, $context);
         }
-        throw new \InvalidArgumentException('Invalid command');
+        throw new InvalidThreadException('Invalid thread type.');
     }
 
     /**
