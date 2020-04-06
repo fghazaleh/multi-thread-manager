@@ -11,6 +11,7 @@ by creating a command which can be handled in asynchronous (threads).
     - [Add Threads](#add-threads)
     - [Wait for Threads](#wait-for-threads)
     - [Terminate Threads](#terminate-threads)
+    - [Register Events/Listeners in Thread Manager](#register-eventslisteners-in-thread-manager)
 - [Security Vulnerabilities](#security-vulnerabilities)
 - [License](#license)
 
@@ -59,7 +60,7 @@ $threadManager->addThread(
     )
 );
 ```
-> Add thread with context
+> Add thread with context.
 ```php
 $threadManager->addThread('php -r "echo 123; exit(0);"', ['data' => 'some data']);
 ```
@@ -74,6 +75,35 @@ $threadManager->wait();
 $threadManager->terminate();
 ```
 
+### Register Events/Listeners in Thread Manager
+
+> Register event with class listener.
+```php
+$threadManager->listen(
+    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_STARTED, 
+    new JobStartedListener()
+);
+$threadManager->listen(
+    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_FINISHED, 
+    new JobFinishedListener()
+);
+$threadManager->listen(
+    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_TIMEOUT, 
+    new JobTimeoutListener()
+);
+...
+$threadManager->addThread(...)
+```
+
+> Register event closure listener function.
+```php
+$threadManager->listen(
+    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_STARTED, 
+    function (\FGhazaleh\MultiThreadManager\Contracts\ThreadInterface $thread){
+        ...
+    }
+);
+```
 ## Security Vulnerabilities
 
 if you discover a security vulnerability within this boilerplate,

@@ -17,7 +17,7 @@ interface ThreadManagerEventInterface
     /**
      * @param string $event
      * @param callable|ListenerInterface $listener
-     *@throws InvalidEventArgumentException
+     * @throws InvalidEventArgumentException
      * @throws InvalidListenerArgumentException
      * @return void
      */

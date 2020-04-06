@@ -36,7 +36,7 @@ final class EventManager implements EventInterface
     /**
      * @inheritDoc
      * */
-    public function fire(string $event, ThreadInterface $task): void
+    public function fire(string $event, ThreadInterface $thread): void
     {
         $this->throwExceptionIfInvalid($event);
 
@@ -46,9 +46,9 @@ final class EventManager implements EventInterface
 
         $listener = $this->events[$event];
         if (\is_callable($listener)) {
-            $listener($task);
+            $listener($thread);
         } elseif ($listener instanceof ListenerInterface) {
-            $listener->handle($task);
+            $listener->handle($thread);
         }
     }
 
