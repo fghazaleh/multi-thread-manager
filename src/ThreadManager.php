@@ -92,6 +92,9 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function terminate(): void
     {
         $this->pendingThreads->clear();

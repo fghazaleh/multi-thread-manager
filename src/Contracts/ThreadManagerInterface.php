@@ -28,4 +28,9 @@ interface ThreadManagerInterface
      * Wait for all symfony process to finish.
      */
     public function wait(): void;
+
+    /**
+     * Terminate pending and running threads;
+     */
+    public function terminate(): void;
 }
