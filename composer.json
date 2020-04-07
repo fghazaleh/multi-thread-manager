@@ -2,7 +2,8 @@
     "name": "fghazaleh/multi-thread-manager",
     "type": "library",
     "description": "Multi-thread manager using Symfony process component",
-    "license": "MTI",
+    "license": "MIT",
+    "homepage": "https://github.com/fghazaleh/multi-thread-manager",
     "keywords": [
         "Symfony process",
         "Multi thread",
@@ -12,7 +13,9 @@
     "authors": [
         {
             "name": "Franco Ghazaleh",
-            "email": "franco.ghazaleh@gmail.com"
+            "email": "franco.ghazaleh@gmail.com",
+            "homepage": "https://ghazaleh.co/",
+            "role": "maintainer"
         }
     ],
     "require": {
@@ -37,5 +40,7 @@
     "scripts": {
         "csfix": "php-cs-fixer fix",
         "coverage": "vendor/bin/phpunit --coverage-html ./coverage && open ./coverage/index.html"
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
