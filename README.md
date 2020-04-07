@@ -3,8 +3,6 @@
 A Library to handle a multiple Symfony process component, 
 by creating a command which can be handled in asynchronous (threads).
 
-# WARNING: This library is under development.
-
 - [Installation](#installation)
 - [Usage](#usage)
     - [Create instance of `ThreadManager`](#create-instance-of-threadmanager)
