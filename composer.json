@@ -5,10 +5,17 @@
     "license": "MIT",
     "homepage": "https://github.com/fghazaleh/multi-thread-manager",
     "keywords": [
-        "Symfony process",
-        "Multi thread",
-        "Multi process",
-        "Async process"
+        "symfony process",
+        "multi thread",
+        "multi process",
+        "async process",
+        "async",
+        "non-blocking",
+        "multihreading",
+        "asynchronous",
+        "parallel",
+        "threads",
+        "queue"
     ],
     "authors": [
         {
