@@ -53,7 +53,7 @@ $threadManager->addThread($process);
 > Add thread object.
 ```php
 $threadManager->addThread(
-    new \FGhazaleh\MultiThreadManager\Thread(
+    \FGhazaleh\MultiThreadManager\Thread::createFromCommand(
         'php -r "echo 123; exit(0);"'
     )
 );
