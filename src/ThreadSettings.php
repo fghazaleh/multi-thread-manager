@@ -33,6 +33,11 @@ final class ThreadSettings implements ThreadSettingsInterface
         $this->setPollInterval($pollInterval);
     }
 
+    public static function createFromDefault():ThreadSettingsInterface
+    {
+        return new static(8, 1, 1);
+    }
+
     /**
      * @return int
      */

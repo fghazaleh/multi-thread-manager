@@ -23,9 +23,17 @@ class ThreadSettingsTest extends TestCase
         $pollInterval = 150;
         $threadSettings = new ThreadSettings($threadSize, $threadStartDelay, $pollInterval);
 
-        $this->assertSame($threadSettings->getThreadSize(), $threadSize);
-        $this->assertSame($threadSettings->getThreadStartDelay(), $threadStartDelay);
-        $this->assertSame($threadSettings->getPollInterval(), $pollInterval);
+        $this->assertSame($threadSize, $threadSettings->getThreadSize());
+        $this->assertSame($threadStartDelay, $threadSettings->getThreadStartDelay());
+        $this->assertSame($pollInterval, $threadSettings->getPollInterval());
+    }
+
+    public function testingCreatingThreadSettingsFromDefault()
+    {
+        $threadSettings = ThreadSettings::createFromDefault();
+        $this->assertSame(8, $threadSettings->getThreadSize());
+        $this->assertSame(1, $threadSettings->getThreadStartDelay());
+        $this->assertSame(1, $threadSettings->getPollInterval());
     }
 
     /**
@@ -38,8 +46,8 @@ class ThreadSettingsTest extends TestCase
         $pollInterval = -1;
         $threadSettings = new ThreadSettings($threadSize, $threadStartDelay, $pollInterval);
 
-        $this->assertSame($threadSettings->getThreadSize(), 20);
-        $this->assertSame($threadSettings->getThreadStartDelay(), 0);
-        $this->assertSame($threadSettings->getPollInterval(), 0);
+        $this->assertSame(20, $threadSettings->getThreadSize());
+        $this->assertSame(0, $threadSettings->getThreadStartDelay());
+        $this->assertSame(0, $threadSettings->getPollInterval());
     }
 }

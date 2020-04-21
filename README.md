@@ -36,6 +36,13 @@ $threadManager = new \FGhazaleh\MultiThreadManager\ThreadManager(
                         )               
                   );
 ```
+or
+```php
+$threadSettings = \FGhazaleh\MultiThreadManager\ThreadSettings::createFromDefault();
+$threadManager = new \FGhazaleh\MultiThreadManager\ThreadManager(
+                     $threadSettings              
+                  );
+```
 
 ### Add threads
 
