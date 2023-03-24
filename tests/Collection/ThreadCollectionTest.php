@@ -11,22 +11,22 @@ namespace FGhazaleh\MultiThreadManager\Collection;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use PHPUnit\Framework\TestCase;
-
+use Mockery;
 class ThreadCollectionTest extends TestCase
 {
     protected function tearDown(): void
     {
-        \Mockery::close();
+        Mockery::close();
     }
 
     /**
      * @test
      */
-    public function itShouldAbleToPushThreadToCollection()
+    public function itShouldAbleToPushThreadToCollection(): void
     {
         $taskCollection = new ThreadCollection();
 
-        $threadMock = \Mockery::mock(ThreadInterface::class);
+        $threadMock = Mockery::mock(ThreadInterface::class);
 
         $taskCollection->push($threadMock);
 
@@ -36,11 +36,11 @@ class ThreadCollectionTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToPullThreadFromCollection()
+    public function itShouldAbleToPullThreadFromCollection(): void
     {
         $threadCollection = new ThreadCollection();
 
-        $threadMock = \Mockery::mock(ThreadInterface::class);
+        $threadMock = Mockery::mock(ThreadInterface::class);
 
         $threadCollection->push($threadMock);
 
@@ -54,12 +54,12 @@ class ThreadCollectionTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToRemoveTaskFromCollection()
+    public function itShouldAbleToRemoveTaskFromCollection(): void
     {
         $threadCollection = new ThreadCollection();
 
-        $threadMock1 = \Mockery::mock(ThreadInterface::class);
-        $threadMock2 = \Mockery::mock(ThreadInterface::class);
+        $threadMock1 = Mockery::mock(ThreadInterface::class);
+        $threadMock2 = Mockery::mock(ThreadInterface::class);
         $pid = 1234;
 
         $threadCollection->push($threadMock1, $pid);
@@ -79,10 +79,10 @@ class ThreadCollectionTest extends TestCase
     /**
      * @test
      */
-    public function itShouldClearThreadCollection()
+    public function itShouldClearThreadCollection(): void
     {
         $threadCollection = new ThreadCollection();
-        $threadMock1 = \Mockery::mock(ThreadInterface::class);
+        $threadMock1 = Mockery::mock(ThreadInterface::class);
 
         $threadCollection->push($threadMock1);
 
@@ -96,10 +96,10 @@ class ThreadCollectionTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToIterateToCollection()
+    public function itShouldAbleToIterateToCollection(): void
     {
         $threadCollection = new ThreadCollection();
-        $threadMock1 = \Mockery::mock(ThreadInterface::class);
+        $threadMock1 = Mockery::mock(ThreadInterface::class);
         $threadCollection->push($threadMock1);
 
         foreach ($threadCollection as $item) {

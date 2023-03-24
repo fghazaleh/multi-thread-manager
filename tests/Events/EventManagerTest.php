@@ -21,7 +21,7 @@ class EventManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToAddEventsAndCallableMethodListeners()
+    public function itShouldAbleToAddEventsAndCallableMethodListeners(): void
     {
         $events = new EventManager();
 
@@ -38,7 +38,7 @@ class EventManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldThrowInvalidEventExceptionWhenAddInvalidEvent()
+    public function itShouldThrowInvalidEventExceptionWhenAddInvalidEvent(): void
     {
         $this->expectException(InvalidEventArgumentException::class);
         $this->expectExceptionMessage('Invalid event [fake_event].');
@@ -52,7 +52,7 @@ class EventManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldThrowInvalidListenerExceptionWhenAddInvalidListener()
+    public function itShouldThrowInvalidListenerExceptionWhenAddInvalidListener(): void
     {
         $this->expectException(InvalidListenerArgumentException::class);
         $this->expectExceptionMessage('Listener should be instance of ListenerInterface or callable function.');
@@ -65,7 +65,7 @@ class EventManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldFireEventStartedWithCallableListener()
+    public function itShouldFireEventStartedWithCallableListener(): void
     {
         $events = new EventManager();
 
@@ -82,7 +82,7 @@ class EventManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldFireEventStartedWithClassListener()
+    public function itShouldFireEventStartedWithClassListener(): void
     {
         $events = new EventManager();
 

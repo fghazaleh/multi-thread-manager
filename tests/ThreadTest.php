@@ -16,7 +16,7 @@ class ThreadTest extends TestCase
     /**
      * @test
      */
-    public function testMe()
+    public function testMe(): void
     {
         $this->assertTrue(true);
     }

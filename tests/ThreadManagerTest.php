@@ -18,7 +18,6 @@ use Symfony\Component\Process\Process;
 
 class ThreadManagerTest extends TestCase
 {
-
     /**
      * @test
      */
@@ -31,7 +30,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldCreateThreadsManagerInstance()
+    public function itShouldCreateThreadsManagerInstance(): void
     {
         $threadManager = new ThreadManager(
             new ThreadSettings(10, 0, 0)
@@ -42,7 +41,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToAddShellScriptCommand()
+    public function itShouldAbleToAddShellScriptCommand(): void
     {
         $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
 
@@ -63,7 +62,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToAddSymfonyProcess()
+    public function itShouldAbleToAddSymfonyProcess(): void
     {
         $testingCommand = 'php -r "echo \'FRANCO\';usleep(500);exit(0);"';
 
@@ -85,7 +84,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToAddCommandWithContext()
+    public function itShouldAbleToAddCommandWithContext(): void
     {
         $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
         $testingContext = ['data' => 123];
@@ -109,7 +108,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToAddThreadClass()
+    public function itShouldAbleToAddThreadClass(): void
     {
         $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
         $thread = new class($testingCommand) extends Thread {
@@ -133,10 +132,11 @@ class ThreadManagerTest extends TestCase
         //assertion
         $this->assertFalse($threadManager->hasUnfinishedThreads());
     }
+
     /**
      * @test
      */
-    public function itShouldThrowInvalidThreadExceptionWhenAddingInvalidThreadType()
+    public function itShouldThrowInvalidThreadExceptionWhenAddingInvalidThreadType(): void
     {
         $this->expectException(InvalidThreadException::class);
         $this->expectExceptionMessage('Invalid thread type.');
@@ -148,7 +148,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldFireTimeoutEventWhenThreadIsTimeout()
+    public function itShouldFireTimeoutEventWhenThreadIsTimeout(): void
     {
         $testingCommand = 'php -r "echo 1;sleep(500);exit(0);"';
         $threadManager = ThreadManager::create(1);
@@ -171,7 +171,7 @@ class ThreadManagerTest extends TestCase
     /**
      * @test
      */
-    public function itShouldAbleToTerminateAllThreads()
+    public function itShouldAbleToTerminateAllThreads(): void
     {
         $threadManager = ThreadManager::create(2);
         $threadManager->addThread('php -r "echo 1;usleep(4000);exit(0);"');

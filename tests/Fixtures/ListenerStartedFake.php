@@ -15,10 +15,7 @@ use PHPUnit\Framework\Assert;
 
 final class ListenerStartedFake implements ListenerInterface
 {
-    /**
-     * @var ThreadInterface
-     */
-    private $task = null;
+    private ?ThreadInterface $task = null;
 
     /**
      * @inheritDoc
@@ -28,12 +25,12 @@ final class ListenerStartedFake implements ListenerInterface
         $this->task = $task;
     }
 
-    public function assertHandled():void
+    public function assertHandled(): void
     {
         Assert::assertInstanceOf(ThreadInterface::class, $this->task);
     }
 
-    public function assertPid(int $pid):void
+    public function assertPid(int $pid): void
     {
         Assert::assertSame($pid, $this->task->getPid());
     }

@@ -16,7 +16,7 @@ class ThreadSettingsTest extends TestCase
     /**
      * @test
      */
-    public function testingThreadSettings()
+    public function testingThreadSettings(): void
     {
         $threadSize = 10;
         $threadStartDelay = 2;
@@ -28,7 +28,7 @@ class ThreadSettingsTest extends TestCase
         $this->assertSame($pollInterval, $threadSettings->getPollInterval());
     }
 
-    public function testingCreatingThreadSettingsFromDefault()
+    public function testingCreatingThreadSettingsFromDefault(): void
     {
         $threadSettings = ThreadSettings::createFromDefault();
         $this->assertSame(8, $threadSettings->getThreadSize());
@@ -39,7 +39,7 @@ class ThreadSettingsTest extends TestCase
     /**
      * @test
      */
-    public function testingThreadSettingsWithLessThanZero()
+    public function testingThreadSettingsWithLessThanZero(): void
     {
         $threadSize = -1;
         $threadStartDelay = -1;
