@@ -11,17 +11,11 @@ namespace FGhazaleh\MultiThreadManager;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use Symfony\Component\Process\Process;
-
 class Thread implements ThreadInterface
 {
-    /**
-     * @var Process
-     */
-    private $command;
-    /**
-     * @var array
-     */
-    private $context;
+    private Process $command;
+
+    private ?array $context;
 
     public function __construct(Process $command, array $context = null)
     {
@@ -29,9 +23,9 @@ class Thread implements ThreadInterface
         $this->context = $context;
     }
 
-    public static function createFromCommand(string $command, array $context = null):ThreadInterface
+    public static function createFromCommand(string $command, array $context = null): ThreadInterface
     {
-        return new static(Process::fromShellCommandline($command),$context);
+        return new static(Process::fromShellCommandline($command), $context);
     }
 
     public function getSymfonyProcess(): Process

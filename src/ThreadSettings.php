@@ -13,18 +13,9 @@ use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
 
 final class ThreadSettings implements ThreadSettingsInterface
 {
-    /**
-     * @var int
-     */
-    private $threadSize;
-    /**
-     * @var int
-     */
-    private $threadStartDelay;
-    /**
-     * @var int
-     */
-    private $pollInterval;
+    private int $threadSize;
+    private int $threadStartDelay;
+    private int $pollInterval;
 
     public function __construct(int $threadSize, int $threadStartDelay, int $pollInterval)
     {
@@ -33,7 +24,7 @@ final class ThreadSettings implements ThreadSettingsInterface
         $this->setPollInterval($pollInterval);
     }
 
-    public static function createFromDefault():ThreadSettingsInterface
+    public static function createFromDefault(): ThreadSettingsInterface
     {
         return new static(8, 1, 1);
     }

@@ -11,18 +11,9 @@ namespace FGhazaleh\MultiThreadManager\Contracts;
 
 interface ThreadSettingsInterface
 {
-    /**
-     * @return int
-     */
     public function getThreadSize(): int;
 
-    /**
-     * @return int
-     */
     public function getThreadStartDelay(): int;
 
-    /**
-     * @return int
-     */
     public function getPollInterval(): int;
 }

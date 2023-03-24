@@ -23,22 +23,11 @@ use Symfony\Component\Process\Process;
 
 final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventInterface
 {
+    private ThreadCollection $pendingThreads;
+    private ThreadCollection $runningThreads;
+    private ThreadSettingsInterface $threadSettings;
 
-    /**
-     * @var ThreadCollection;
-     */
-    private $pendingThreads;
-
-    /**
-     * @var ThreadCollection;
-     */
-    private $runningThreads;
-    /**
-     * @var ThreadSettingsInterface
-     */
-    private $threadSettings;
-
-    private $events;
+    private EventManager $events;
 
     public function __construct(ThreadSettingsInterface $threadSettings)
     {
@@ -126,8 +115,8 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     /**
      * Executes the next pending thread, if the limit of parallel tasks is not yet reached.
      *
-     * @throws InvalidEventArgumentException
      * @return void;
+     * @throws InvalidEventArgumentException
      */
     private function executeNextPendingThread(): void
     {
@@ -154,8 +143,8 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      *
      * @param $command
      * @param array|null $context
-     * @throws InvalidThreadException
      * @return ThreadInterface
+     * @throws InvalidThreadException
      */
     private function createThread($command, array $context = null): ThreadInterface
     {
@@ -163,7 +152,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             return $command;
         } elseif ($command instanceof Process) {
             return new Thread($command, $context);
-        } elseif (\is_string($command)) {
+        } elseif (is_string($command)) {
             return Thread::createFromCommand($command, $context);
         }
         throw new InvalidThreadException('Invalid thread type.');

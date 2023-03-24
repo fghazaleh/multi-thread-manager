@@ -10,10 +10,14 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager\Collection;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
+use IteratorAggregate;
+use ArrayIterator;
+use Traversable;
+use Countable;
 
-final class ThreadCollection implements \IteratorAggregate, \Countable
+final class ThreadCollection implements IteratorAggregate, Countable
 {
-    private $collection = [];
+    private array $collection = [];
 
     /**
      * Push thread to the queue.
@@ -25,7 +29,7 @@ final class ThreadCollection implements \IteratorAggregate, \Countable
     public function push(ThreadInterface $task, ?int $pid = null): ThreadCollection
     {
         if ($pid === null) {
-            array_push($this->collection, $task);
+            $this->collection[] = $task;
         } else {
             $this->collection[$pid] = $task;
         }
@@ -74,8 +78,8 @@ final class ThreadCollection implements \IteratorAggregate, \Countable
     /**
      * @inheritDoc
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
-        return new \ArrayIterator($this->collection);
+        return new ArrayIterator($this->collection);
     }
 }

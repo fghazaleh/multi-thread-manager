@@ -17,9 +17,9 @@ interface ThreadManagerEventInterface
     /**
      * @param string $event
      * @param callable|ListenerInterface $listener
-     * @throws InvalidEventArgumentException
-     * @throws InvalidListenerArgumentException
      * @return void
+     * @throws InvalidListenerArgumentException
+     * @throws InvalidEventArgumentException
      */
-    public function listen(string $event, $listener):void ;
+    public function listen(string $event, $listener): void;
 }

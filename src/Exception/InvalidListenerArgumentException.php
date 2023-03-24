@@ -8,8 +8,8 @@
 declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Exception;
-
-final class InvalidListenerArgumentException extends \Exception
+use Exception;
+final class InvalidListenerArgumentException extends Exception
 {
     protected $message = 'Listener should be instance of ListenerInterface or callable function.';
 }

@@ -19,10 +19,10 @@ interface ThreadManagerInterface
      *
      * @param Process|string|ThreadInterface $command
      * @param array|null $context
-     * @throws InvalidThreadException
      * @return void
+     * @throws InvalidThreadException
      */
-    public function addThread($command, array $context = null): void ;
+    public function addThread($command, array $context = null): void;
 
     /**
      * Wait for all symfony process to finish.

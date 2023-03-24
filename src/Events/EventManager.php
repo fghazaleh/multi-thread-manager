@@ -45,7 +45,7 @@ final class EventManager implements EventInterface
         }
 
         $listener = $this->events[$event];
-        if (\is_callable($listener)) {
+        if (is_callable($listener)) {
             $listener($thread);
         } elseif ($listener instanceof ListenerInterface) {
             $listener->handle($thread);
@@ -67,7 +67,7 @@ final class EventManager implements EventInterface
      */
     private function throwExceptionIfInvalid(string $event): void
     {
-        if (!\array_key_exists($event, $this->getSupportedEvents())) {
+        if (!array_key_exists($event, $this->getSupportedEvents())) {
             throw new InvalidEventArgumentException(
                 sprintf('Invalid event [%s].', $event)
             );

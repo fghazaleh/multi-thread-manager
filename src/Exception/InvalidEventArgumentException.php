@@ -8,8 +8,8 @@
 declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Exception;
-
-final class InvalidEventArgumentException extends \Exception
+use Exception;
+final class InvalidEventArgumentException extends Exception
 {
     protected $message = 'Invalid Event.';
 }

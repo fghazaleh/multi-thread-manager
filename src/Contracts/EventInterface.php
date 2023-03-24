@@ -21,18 +21,17 @@ interface EventInterface
     /**
      * @param string $event
      * @param callable|ListenerInterface $listener
-     *@throws InvalidEventArgumentException
-     * @throws InvalidListenerArgumentException
      * @return void
+     * @throws InvalidListenerArgumentException
+     * @throws InvalidEventArgumentException
      */
     public function addListener(string $event, $listener): void;
-
 
     /**
      * @param string $event
      * @param ThreadInterface $thread
-     *@throws InvalidEventArgumentException
-     *@return void
+     * @return void
+     * @throws InvalidEventArgumentException
      */
     public function fire(string $event, ThreadInterface $thread): void;
 }

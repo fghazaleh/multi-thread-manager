@@ -8,8 +8,8 @@
 declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Exception;
-
-class InvalidThreadException extends \Exception
+use Exception;
+class InvalidThreadException extends Exception
 {
     protected $message = 'Invalid Thread.';
 }

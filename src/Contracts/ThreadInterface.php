@@ -24,9 +24,6 @@ interface ThreadInterface
      */
     public function getPid(): ?int;
 
-    /**
-     * @return Process
-     */
     public function getSymfonyProcess(): Process;
 
     /**
