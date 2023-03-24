@@ -3,6 +3,11 @@
 A Library to handle a multiple Symfony process component, 
 by creating a command which can be handled in asynchronous (threads).
 
+## Supported PHP Versions
+- PHP 7.2
+- PHP 8.0
+
+## Index
 - [Installation](#installation)
 - [Usage](#usage)
     - [Create instance of `ThreadManager`](#create-instance-of-threadmanager)
