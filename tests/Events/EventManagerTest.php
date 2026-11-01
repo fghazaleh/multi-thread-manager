@@ -14,13 +14,12 @@ use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
 use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
 use FGhazaleh\MultiThreadManager\Fixtures\ListenerStartedFake;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class EventManagerTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldAbleToAddEventsAndCallableMethodListeners(): void
     {
         $events = new EventManager();
@@ -35,9 +34,7 @@ class EventManagerTest extends TestCase
         $this->assertTrue(true);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldThrowInvalidEventExceptionWhenAddInvalidEvent(): void
     {
         $this->expectException(InvalidEventArgumentException::class);
@@ -49,9 +46,7 @@ class EventManagerTest extends TestCase
         });
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldThrowInvalidListenerExceptionWhenAddInvalidListener(): void
     {
         $this->expectException(InvalidListenerArgumentException::class);
@@ -62,9 +57,7 @@ class EventManagerTest extends TestCase
         $events->addListener(EventInterface::EVENT_STARTED, 'fake-listener');
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldFireEventStartedWithCallableListener(): void
     {
         $events = new EventManager();
@@ -79,9 +72,7 @@ class EventManagerTest extends TestCase
         $events->fire(EventInterface::EVENT_STARTED, $taskFake);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldFireEventStartedWithClassListener(): void
     {
         $events = new EventManager();

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager\Collection;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Mockery;
 class ThreadCollectionTest extends TestCase
@@ -19,9 +20,7 @@ class ThreadCollectionTest extends TestCase
         Mockery::close();
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldAbleToPushThreadToCollection(): void
     {
         $taskCollection = new ThreadCollection();
@@ -33,9 +32,7 @@ class ThreadCollectionTest extends TestCase
         $this->assertCount(1, $taskCollection);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldAbleToPullThreadFromCollection(): void
     {
         $threadCollection = new ThreadCollection();
@@ -51,9 +48,7 @@ class ThreadCollectionTest extends TestCase
         $this->assertCount(0, $threadCollection);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldAbleToRemoveTaskFromCollection(): void
     {
         $threadCollection = new ThreadCollection();
@@ -76,9 +71,7 @@ class ThreadCollectionTest extends TestCase
         $this->assertSame($taskResult, $threadMock2);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldClearThreadCollection(): void
     {
         $threadCollection = new ThreadCollection();
@@ -93,9 +86,7 @@ class ThreadCollectionTest extends TestCase
         $this->assertCount(0, $threadCollection);
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function itShouldAbleToIterateToCollection(): void
     {
         $threadCollection = new ThreadCollection();
