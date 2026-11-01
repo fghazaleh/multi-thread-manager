@@ -16,4 +16,10 @@ interface ThreadSettingsInterface
     public function getThreadStartDelay(): int;
 
     public function getPollInterval(): int;
+
+    /**
+     * Whether the remaining pending and running threads are terminated
+     * as soon as one thread fails or times out.
+     */
+    public function isFailFast(): bool;
 }

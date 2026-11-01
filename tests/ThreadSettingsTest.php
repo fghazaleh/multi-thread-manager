@@ -27,6 +27,8 @@ class ThreadSettingsTest extends TestCase
         $this->assertSame($threadSize, $threadSettings->getThreadSize());
         $this->assertSame($threadStartDelay, $threadSettings->getThreadStartDelay());
         $this->assertSame($pollInterval, $threadSettings->getPollInterval());
+        $this->assertFalse($threadSettings->isFailFast());
+        $this->assertTrue((new ThreadSettings(1, 0, 0, failFast: true))->isFailFast());
     }
 
     #[Test]

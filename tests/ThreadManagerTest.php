@@ -184,6 +184,93 @@ class ThreadManagerTest extends TestCase
     }
 
     #[Test]
+    public function itShouldReturnResultsFromWait(): void
+    {
+        $threadManager = ThreadManager::create(2);
+
+        $threadManager->addThread('php -r "echo \'ok\'; exit(0);"', ['name' => 'a']);
+        $threadManager->addThread('php -r "fwrite(STDERR, \'boom\'); exit(3);"', ['name' => 'b']);
+        $results = $threadManager->wait();
+
+        $this->assertCount(2, $results);
+        $byName = [];
+        foreach ($results as $result) {
+            $byName[$result->getContext()['name']] = $result;
+        }
+
+        $this->assertSame(ThreadStatus::Succeeded, $byName['a']->status);
+        $this->assertTrue($byName['a']->isSuccessful());
+        $this->assertSame(0, $byName['a']->exitCode);
+        $this->assertSame('ok', $byName['a']->output);
+        $this->assertGreaterThan(0.0, $byName['a']->duration);
+
+        $this->assertSame(ThreadStatus::Failed, $byName['b']->status);
+        $this->assertFalse($byName['b']->isSuccessful());
+        $this->assertSame(3, $byName['b']->exitCode);
+        $this->assertSame('boom', $byName['b']->errorOutput);
+
+        $this->assertSame($results, $threadManager->getResults());
+    }
+
+    #[Test]
+    public function itShouldFireFailedInsteadOfFinishedForNonZeroExit(): void
+    {
+        $threadManager = ThreadManager::create(1);
+        $fired = [];
+
+        foreach ([Event::Finished, Event::Failed, Event::Timeout] as $event) {
+            $threadManager->listen($event, function () use (&$fired, $event) {
+                $fired[] = $event;
+            });
+        }
+
+        $threadManager->addThread('php -r "exit(1);"');
+        $threadManager->wait();
+
+        $this->assertSame([Event::Failed], $fired);
+    }
+
+    #[Test]
+    public function itShouldReportTimedOutResult(): void
+    {
+        $threadManager = ThreadManager::create(1);
+        $process = Process::fromShellCommandline('exec php -r "sleep(500);"');
+        $process->setTimeout(0.3);
+
+        $threadManager->addThread($process);
+        $results = $threadManager->wait();
+
+        $this->assertCount(1, $results);
+        $this->assertSame(ThreadStatus::TimedOut, $results[0]->status);
+    }
+
+    #[Test]
+    public function itShouldStopEverythingOnFirstFailureWhenFailFast(): void
+    {
+        $threadManager = ThreadManager::create(1, failFast: true);
+
+        $threadManager->addThread('php -r "exit(1);"');
+        $threadManager->addThread('php -r "exit(0);"');
+        $threadManager->addThread('php -r "exit(0);"');
+        $results = $threadManager->wait();
+
+        $this->assertCount(1, $results);
+        $this->assertSame(ThreadStatus::Failed, $results[0]->status);
+        $this->assertFalse($threadManager->hasUnfinishedThreads());
+    }
+
+    #[Test]
+    public function itShouldRunEverythingOnFailureWhenNotFailFast(): void
+    {
+        $threadManager = ThreadManager::create(1);
+
+        $threadManager->addThread('php -r "exit(1);"');
+        $threadManager->addThread('php -r "exit(0);"');
+
+        $this->assertCount(2, $threadManager->wait());
+    }
+
+    #[Test]
     public function itShouldAbleToTerminateAllThreads(): void
     {
         $threadManager = ThreadManager::create(2);

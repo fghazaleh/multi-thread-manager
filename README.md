@@ -77,9 +77,30 @@ $threadManager->addThread('php -r "echo 123; exit(0);"', ['data' => 'some data']
 ```
 
 ### Wait for threads
+`wait()` blocks until every thread is done and returns a `ThreadResult` for each one, in completion order.
 ```php
-$threadManager->wait();
+$results = $threadManager->wait();
+
+foreach ($results as $result) {
+    $result->status;       // ThreadStatus::Succeeded | Failed | TimedOut
+    $result->exitCode;     // ?int
+    $result->output;       // stdout
+    $result->errorOutput;  // stderr
+    $result->duration;     // seconds
+    $result->getContext(); // the context passed to addThread()
+    $result->isSuccessful();
+}
 ```
+The same list is available later with `$threadManager->getResults()`.
+
+### Fail fast
+Terminate all pending and running threads as soon as one thread fails or times out:
+```php
+$threadManager = ThreadManager::create(10, failFast: true);
+// or
+new ThreadSettings(threadSize: 10, threadStartDelay: 0, pollInterval: 120, failFast: true);
+```
+Threads terminated this way do not produce a result.
 
 ### Terminate threads
 ```php
@@ -89,7 +110,8 @@ $threadManager->terminate();
 ### Register Events/Listeners in Thread Manager
 
 An event can have several listeners; they are called in the order they were registered.
-A thread that exceeds its timeout is stopped and fires `Event::Timeout` only (not `Event::Finished`).
+Exactly one of these fires per thread: `Event::Finished` (exit code 0), `Event::Failed` (non-zero exit code)
+or `Event::Timeout` (the thread exceeded its timeout and was stopped).
 
 > Register event with class listener.
 ```php
@@ -100,6 +122,10 @@ $threadManager->listen(
 $threadManager->listen(
     \FGhazaleh\MultiThreadManager\Event::Finished, 
     new JobFinishedListener()
+);
+$threadManager->listen(
+    \FGhazaleh\MultiThreadManager\Event::Failed, 
+    new JobFailedListener()
 );
 $threadManager->listen(
     \FGhazaleh\MultiThreadManager\Event::Timeout, 

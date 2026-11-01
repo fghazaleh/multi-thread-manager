@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Contracts;
 
+use FGhazaleh\MultiThreadManager\ThreadResult;
 use Symfony\Component\Process\Process;
 
 interface ThreadManagerInterface
@@ -21,9 +22,19 @@ interface ThreadManagerInterface
     public function addThread(string|Process|ThreadInterface $command, ?array $context = null): void;
 
     /**
-     * Wait for all symfony process to finish.
+     * Wait for all threads to finish and return the results of every thread
+     * that ran to completion, failed or timed out, in completion order.
+     *
+     * @return list<ThreadResult>
      */
-    public function wait(): void;
+    public function wait(): array;
+
+    /**
+     * Returns the results collected so far.
+     *
+     * @return list<ThreadResult>
+     */
+    public function getResults(): array;
 
     /**
      * Terminate pending and running threads.
