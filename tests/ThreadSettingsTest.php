@@ -9,13 +9,12 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class ThreadSettingsTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function testingThreadSettings(): void
     {
         $threadSize = 10;
@@ -36,9 +35,7 @@ class ThreadSettingsTest extends TestCase
         $this->assertSame(1, $threadSettings->getPollInterval());
     }
 
-    /**
-     * @test
-     */
+    #[Test]
     public function testingThreadSettingsWithLessThanZero(): void
     {
         $threadSize = -1;

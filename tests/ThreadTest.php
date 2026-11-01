@@ -9,13 +9,12 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class ThreadTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[Test]
     public function testMe(): void
     {
         $this->assertTrue(true);

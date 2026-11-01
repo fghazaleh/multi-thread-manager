@@ -4,8 +4,9 @@ A Library to handle a multiple Symfony process component,
 by creating a command which can be handled in asynchronous (threads).
 
 ## Supported PHP Versions
-- PHP 7.2
-- PHP 8.0
+- PHP 8.5
+
+For PHP 8.0 use the `dev-8.0` branch.
 
 ## Index
 - [Installation](#installation)
