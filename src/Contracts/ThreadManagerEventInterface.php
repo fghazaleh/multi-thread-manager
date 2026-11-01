@@ -9,17 +9,12 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Contracts;
 
-use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
-use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
+use FGhazaleh\MultiThreadManager\Event;
 
 interface ThreadManagerEventInterface
 {
     /**
-     * @param string $event
-     * @param callable|ListenerInterface $listener
-     * @return void
-     * @throws InvalidListenerArgumentException
-     * @throws InvalidEventArgumentException
+     * @param callable(ThreadInterface): mixed|ListenerInterface $listener
      */
-    public function listen(string $event, $listener): void;
+    public function listen(Event $event, callable|ListenerInterface $listener): void;
 }

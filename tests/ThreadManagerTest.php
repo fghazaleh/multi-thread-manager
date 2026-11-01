@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager;
 
-use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
-use FGhazaleh\MultiThreadManager\Exception\InvalidThreadException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Process\Process;
@@ -42,7 +40,7 @@ class ThreadManagerTest extends TestCase
 
         $threadManager = ThreadManager::create(1);
 
-        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
+        $threadManager->listen(Event::Finished, function (ThreadInterface $thread) use ($testingCommand) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame($testingCommand, $process->getCommandLine());
@@ -61,7 +59,7 @@ class ThreadManagerTest extends TestCase
 
         $threadManager = ThreadManager::create(1);
 
-        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
+        $threadManager->listen(Event::Finished, function (ThreadInterface $thread) use ($testingCommand) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame('FRANCO', $process->getOutput());
@@ -82,7 +80,7 @@ class ThreadManagerTest extends TestCase
 
         $threadManager = ThreadManager::create(1);
 
-        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand, $testingContext) {
+        $threadManager->listen(Event::Finished, function (ThreadInterface $thread) use ($testingCommand, $testingContext) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame($testingCommand, $process->getCommandLine());
@@ -110,7 +108,7 @@ class ThreadManagerTest extends TestCase
         $threadManager = ThreadManager::create(1);
 
         //assertion
-        $threadManager->listen(EventInterface::EVENT_FINISHED, function (ThreadInterface $thread) use ($testingCommand) {
+        $threadManager->listen(Event::Finished, function (ThreadInterface $thread) use ($testingCommand) {
             $process = $thread->getSymfonyProcess();
             $this->assertSame(0, $process->getExitCode());
             $this->assertSame($testingCommand, $process->getCommandLine());
@@ -123,34 +121,66 @@ class ThreadManagerTest extends TestCase
     }
 
     #[Test]
-    public function itShouldThrowInvalidThreadExceptionWhenAddingInvalidThreadType(): void
+    public function itShouldStopTimedOutThreadAndNotFireFinishedEvent(): void
     {
-        $this->expectException(InvalidThreadException::class);
-        $this->expectExceptionMessage('Invalid thread type.');
-
-        $threadManager = ThreadManager::create(1);
-        $threadManager->addThread(new \stdClass());
-    }
-
-    #[Test]
-    public function itShouldFireTimeoutEventWhenThreadIsTimeout(): void
-    {
-        $testingCommand = 'php -r "echo 1;sleep(500);exit(0);"';
         $threadManager = ThreadManager::create(1);
 
-        $process = Process::fromShellCommandline($testingCommand, null, null);
+        $process = Process::fromShellCommandline('exec php -r "sleep(500);"');
         $process->setTimeout(0.5);
 
-        $threadManager->listen(EventInterface::EVENT_TIMEOUT, function (ThreadInterface $thread) {
-            $process = $thread->getSymfonyProcess();
-            $this->assertSame(143, $process->getExitCode());
-            $this->assertTrue($process->isTerminated());
+        $timeouts = 0;
+        $threadManager->listen(Event::Timeout, function (ThreadInterface $thread) use (&$timeouts) {
+            $timeouts++;
+            $this->assertTrue($thread->getSymfonyProcess()->isTerminated());
+        });
+        $threadManager->listen(Event::Finished, function () {
+            $this->fail('Finished event must not fire for a timed out thread.');
         });
 
         $threadManager->addThread($process);
         $threadManager->wait();
 
+        $this->assertSame(1, $timeouts);
         $this->assertFalse($threadManager->hasUnfinishedThreads());
+    }
+
+    #[Test]
+    public function itShouldStartNextPendingThreadAfterATimeout(): void
+    {
+        $threadManager = ThreadManager::create(1);
+
+        $slow = Process::fromShellCommandline('exec php -r "sleep(500);"');
+        $slow->setTimeout(0.3);
+
+        $finished = [];
+        $threadManager->listen(Event::Finished, function (ThreadInterface $thread) use (&$finished) {
+            $finished[] = $thread->getContext()['name'];
+        });
+
+        $threadManager->addThread($slow, ['name' => 'slow']);
+        $threadManager->addThread('php -r "exit(0);"', ['name' => 'fast']);
+        $threadManager->wait();
+
+        $this->assertSame(['fast'], $finished);
+    }
+
+    #[Test]
+    public function itShouldCallMultipleListenersOfTheSameEvent(): void
+    {
+        $threadManager = ThreadManager::create(1);
+        $count = 0;
+
+        $threadManager->listen(Event::Finished, function () use (&$count) {
+            $count++;
+        });
+        $threadManager->listen(Event::Finished, function () use (&$count) {
+            $count++;
+        });
+
+        $threadManager->addThread('php -r "exit(0);"');
+        $threadManager->wait();
+
+        $this->assertSame(2, $count);
     }
 
     #[Test]
