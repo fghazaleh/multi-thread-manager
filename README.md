@@ -93,6 +93,22 @@ foreach ($results as $result) {
 ```
 The same list is available later with `$threadManager->getResults()`.
 
+### Retry failed threads
+A thread that fails (non-zero exit code) or times out can be retried with a `RetryPolicy`:
+```php
+use FGhazaleh\MultiThreadManager\RetryPolicy;
+
+// up to 3 retries, waiting 200ms, 400ms, 800ms (delay * multiplier^(n-1))
+$threadManager->addThread(
+    'php job.php',
+    ['id' => 42],
+    new RetryPolicy(maxRetries: 3, delay: 200, multiplier: 2.0)
+);
+```
+- `Event::Retrying` fires every time a retry is scheduled; `Failed` / `Timeout` only fire after the last attempt.
+- The backoff does not block: other threads keep running (and use the free slot) while a thread waits.
+- The `ThreadResult` describes the last attempt. With fail-fast, termination happens only after the retries are exhausted.
+
 ### Fail fast
 Terminate all pending and running threads as soon as one thread fails or times out:
 ```php

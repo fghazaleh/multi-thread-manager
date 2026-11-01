@@ -17,6 +17,11 @@ interface ThreadInterface
 
     public function stop(): ?int;
 
+    /**
+     * Starts a fresh attempt of an already finished thread (used for retries).
+     */
+    public function restart(): void;
+
     public function getPid(): ?int;
 
     public function getSymfonyProcess(): Process;

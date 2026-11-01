@@ -32,6 +32,15 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     /** @var array<int, float> start time (hrtime, seconds) by spl_object_id of the thread */
     private array $startedAt = [];
 
+    /** @var array<int, RetryPolicy> retry policy by spl_object_id of the thread */
+    private array $retryPolicies = [];
+
+    /** @var array<int, int> number of retries already scheduled by spl_object_id of the thread */
+    private array $retries = [];
+
+    /** @var array<int, array{thread: ThreadInterface, readyAt: float}> threads waiting for their next attempt */
+    private array $waitingForRetry = [];
+
     public function __construct(private readonly ThreadSettingsInterface $threadSettings)
     {
         $this->pendingThreads = new ThreadCollection();
@@ -50,11 +59,13 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     }
 
     #[Override]
-    public function addThread(string|Process|ThreadInterface $command, ?array $context = null): void
+    public function addThread(string|Process|ThreadInterface $command, ?array $context = null, ?RetryPolicy $retry = null): void
     {
-        $this->pendingThreads->push(
-            $this->createThread($command, $context)
-        );
+        $thread = $this->createThread($command, $context);
+        if ($retry !== null) {
+            $this->retryPolicies[spl_object_id($thread)] = $retry;
+        }
+        $this->pendingThreads->push($thread);
         $this->executeNextPendingThread();
         $this->checkAllRunningThreads();
     }
@@ -91,6 +102,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
         }
         $this->runningThreads->clear();
         $this->startedAt = [];
+        $this->waitingForRetry = [];
     }
 
     /**
@@ -98,7 +110,9 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      */
     public function hasUnfinishedThreads(): bool
     {
-        return $this->pendingThreads->count() > 0 || $this->runningThreads->count() > 0;
+        return $this->pendingThreads->count() > 0
+            || $this->runningThreads->count() > 0
+            || $this->waitingForRetry !== [];
     }
 
     /**
@@ -114,15 +128,68 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             $thread->start();
 
             $this->events->fire(Event::Started, $thread);
-            $pid = $thread->getPid();
-
-            if ($pid === null) {
-                // The task finished before we were able to check its process id.
-                $this->checkRunningThread($pid, $thread);
-            } else {
-                $this->runningThreads->push($thread, $pid);
-            }
+            $this->track($thread);
         }
+    }
+
+    /**
+     * Tracks a started thread by its pid, or checks it right away when it already finished.
+     */
+    private function track(ThreadInterface $thread): void
+    {
+        $pid = $thread->getPid();
+
+        if ($pid === null) {
+            // The task finished before we were able to check its process id.
+            $this->checkRunningThread($pid, $thread);
+        } else {
+            $this->runningThreads->push($thread, $pid);
+        }
+    }
+
+    /**
+     * Restarts the threads whose retry delay elapsed, as far as free slots are available.
+     */
+    private function startDueRetries(): void
+    {
+        foreach ($this->waitingForRetry as $id => $waiting) {
+            if (!$this->hasFreeSlot()) {
+                return;
+            }
+            if ($waiting['readyAt'] > hrtime(true) / 1e9) {
+                continue;
+            }
+
+            unset($this->waitingForRetry[$id]);
+            $thread = $waiting['thread'];
+            $this->startedAt[$id] = hrtime(true) / 1e9;
+            $thread->restart();
+            $this->track($thread);
+        }
+    }
+
+    /**
+     * Schedules the next attempt of a failed thread. Returns false when no retries are left.
+     */
+    private function scheduleRetry(ThreadInterface $thread): bool
+    {
+        $id = spl_object_id($thread);
+        $policy = $this->retryPolicies[$id] ?? null;
+        $retries = $this->retries[$id] ?? 0;
+
+        if ($policy === null || $retries >= $policy->maxRetries) {
+            return false;
+        }
+
+        $this->retries[$id] = ++$retries;
+        $this->waitingForRetry[$id] = [
+            'thread' => $thread,
+            'readyAt' => hrtime(true) / 1e9 + $policy->delayFor($retries) / 1000,
+        ];
+        unset($this->startedAt[$id]);
+        $this->events->fire(Event::Retrying, $thread);
+
+        return true;
     }
 
     /**
@@ -146,8 +213,12 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      */
     private function canExecuteNextPendingThread(): bool
     {
-        return $this->pendingThreads->count() > 0 &&
-            $this->runningThreads->count() < $this->threadSettings->getThreadSize();
+        return $this->pendingThreads->count() > 0 && $this->hasFreeSlot();
+    }
+
+    private function hasFreeSlot(): bool
+    {
+        return $this->runningThreads->count() < $this->threadSettings->getThreadSize();
     }
 
     /**
@@ -158,13 +229,14 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
         foreach ($this->runningThreads as $pid => $thread) {
             $this->checkRunningThread($pid, $thread);
         }
+        $this->startDueRetries();
     }
 
     /**
      * Checks the thread whether it has finished, failed or timed out.
      *
-     * A timed out thread is stopped and removed. Exactly one of the Finished, Failed
-     * or Timeout events is fired per thread.
+     * A timed out thread is stopped and removed. A failed or timed out thread with retries left fires
+     * Retrying and waits for its next attempt; otherwise exactly one of Finished, Failed or Timeout is fired.
      */
     private function checkRunningThread(?int $pid, ThreadInterface $thread): void
     {
@@ -181,6 +253,13 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
 
         if ($pid !== null) {
             $this->runningThreads->remove($pid);
+        }
+
+        if ($status !== ThreadStatus::Succeeded && $this->scheduleRetry($thread)) {
+            $this->startDueRetries();
+            $this->executeNextPendingThread();
+
+            return;
         }
 
         $this->results[] = $this->createResult($thread, $status);

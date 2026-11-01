@@ -16,6 +16,8 @@ enum Event: string
     case Finished = 'event_finished';
     /** The process exited with a non-zero code. */
     case Failed = 'event_failed';
+    /** A failed or timed out thread is scheduled for another attempt. */
+    case Retrying = 'event_retrying';
     /** The process exceeded its timeout and was stopped. */
     case Timeout = 'event_timeout';
 }
