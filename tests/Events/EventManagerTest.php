@@ -9,10 +9,8 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Events;
 
-use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
-use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
-use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
+use FGhazaleh\MultiThreadManager\Event;
 use FGhazaleh\MultiThreadManager\Fixtures\ListenerStartedFake;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -20,41 +18,34 @@ use PHPUnit\Framework\TestCase;
 class EventManagerTest extends TestCase
 {
     #[Test]
-    public function itShouldAbleToAddEventsAndCallableMethodListeners(): void
+    public function itShouldCallAllListenersOfAnEventInOrder(): void
     {
         $events = new EventManager();
+        $calls = [];
 
-        $events->addListener(EventInterface::EVENT_STARTED, function () {
+        $events->addListener(Event::Finished, function () use (&$calls) {
+            $calls[] = 'first';
         });
-        $events->addListener(EventInterface::EVENT_FINISHED, function () {
+        $events->addListener(Event::Finished, function () use (&$calls) {
+            $calls[] = 'second';
         });
-        $events->addListener(EventInterface::EVENT_FINISHED, function () {
+        $events->addListener(Event::Started, function () use (&$calls) {
+            $calls[] = 'started';
         });
 
-        $this->assertTrue(true);
+        $events->fire(Event::Finished, \Mockery::mock(ThreadInterface::class));
+
+        $this->assertSame(['first', 'second'], $calls);
     }
 
     #[Test]
-    public function itShouldThrowInvalidEventExceptionWhenAddInvalidEvent(): void
+    public function itShouldDoNothingWhenEventHasNoListeners(): void
     {
-        $this->expectException(InvalidEventArgumentException::class);
-        $this->expectExceptionMessage('Invalid event [fake_event].');
-
         $events = new EventManager();
 
-        $events->addListener('fake_event', function () {
-        });
-    }
+        $events->fire(Event::Timeout, \Mockery::mock(ThreadInterface::class));
 
-    #[Test]
-    public function itShouldThrowInvalidListenerExceptionWhenAddInvalidListener(): void
-    {
-        $this->expectException(InvalidListenerArgumentException::class);
-        $this->expectExceptionMessage('Listener should be instance of ListenerInterface or callable function.');
-
-        $events = new EventManager();
-
-        $events->addListener(EventInterface::EVENT_STARTED, 'fake-listener');
+        $this->expectNotToPerformAssertions();
     }
 
     #[Test]
@@ -65,11 +56,11 @@ class EventManagerTest extends TestCase
         $taskFake = \Mockery::mock(ThreadInterface::class);
         $taskFake->shouldReceive('getPid')->andReturn(123);
 
-        $events->addListener(EventInterface::EVENT_STARTED, function (ThreadInterface $task) {
+        $events->addListener(Event::Started, function (ThreadInterface $task) {
             $this->assertSame(123, $task->getPid());
         });
 
-        $events->fire(EventInterface::EVENT_STARTED, $taskFake);
+        $events->fire(Event::Started, $taskFake);
     }
 
     #[Test]
@@ -82,9 +73,9 @@ class EventManagerTest extends TestCase
 
         $startedFakeListener = new ListenerStartedFake();
 
-        $events->addListener(EventInterface::EVENT_STARTED, $startedFakeListener);
+        $events->addListener(Event::Started, $startedFakeListener);
 
-        $events->fire(EventInterface::EVENT_STARTED, $taskFake);
+        $events->fire(Event::Started, $taskFake);
 
         $startedFakeListener->assertHandled();
         $startedFakeListener->assertPid(123);

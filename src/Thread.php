@@ -10,49 +10,55 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
+use Override;
 use Symfony\Component\Process\Process;
+
 class Thread implements ThreadInterface
 {
-    private Process $command;
-
-    private ?array $context;
-
-    public function __construct(Process $command, array $context = null)
-    {
-        $this->command = $command;
-        $this->context = $context;
+    /**
+     * @param array<string, mixed>|null $context
+     */
+    public function __construct(
+        private readonly Process $command,
+        private readonly ?array $context = null,
+    ) {
     }
 
-    public static function createFromCommand(string $command, array $context = null): ThreadInterface
+    /**
+     * @param array<string, mixed>|null $context
+     */
+    public static function createFromCommand(string $command, ?array $context = null): static
     {
         return new static(Process::fromShellCommandline($command), $context);
     }
 
+    #[Override]
     public function getSymfonyProcess(): Process
     {
         return $this->command;
     }
 
+    #[Override]
     public function getContext(): ?array
     {
         return $this->context;
     }
 
+    #[Override]
     public function start(): void
     {
-        $this->getSymfonyProcess()->start();
+        $this->command->start();
     }
 
+    #[Override]
     public function stop(): ?int
     {
-        return $this->getSymfonyProcess()->stop();
+        return $this->command->stop();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getPid(): ?int
     {
-        return $this->getSymfonyProcess()->getPid();
+        return $this->command->getPid();
     }
 }

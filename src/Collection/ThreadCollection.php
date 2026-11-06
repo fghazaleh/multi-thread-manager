@@ -9,24 +9,25 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Collection;
 
+use ArrayIterator;
+use Countable;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use IteratorAggregate;
-use ArrayIterator;
-use Traversable;
-use Countable;
+use Override;
+use RuntimeException;
 
+/**
+ * @implements IteratorAggregate<int, ThreadInterface>
+ */
 final class ThreadCollection implements IteratorAggregate, Countable
 {
+    /** @var array<int, ThreadInterface> */
     private array $collection = [];
 
     /**
-     * Push thread to the queue.
-     *
-     * @param ThreadInterface $task
-     * @param int|null $pid
-     * @return ThreadCollection
+     * Pushes a thread to the queue, indexed by its pid when given.
      */
-    public function push(ThreadInterface $task, ?int $pid = null): ThreadCollection
+    public function push(ThreadInterface $task, ?int $pid = null): self
     {
         if ($pid === null) {
             $this->collection[] = $task;
@@ -37,17 +38,9 @@ final class ThreadCollection implements IteratorAggregate, Countable
         return $this;
     }
 
-    /**
-     * Remove the thread from the collection if the pid exists.
-     *
-     * @param int $pid
-     * @return void
-     */
     public function remove(int $pid): void
     {
-        if (isset($this->collection[$pid])) {
-            unset($this->collection[$pid]);
-        }
+        unset($this->collection[$pid]);
     }
 
     public function clear(): void
@@ -58,27 +51,25 @@ final class ThreadCollection implements IteratorAggregate, Countable
     /**
      * Pulls the first thread from the queue.
      *
-     * @return ThreadInterface
+     * @throws RuntimeException when the collection is empty
      */
     public function pull(): ThreadInterface
     {
-        return array_shift($this->collection);
+        return array_shift($this->collection)
+            ?? throw new RuntimeException('Cannot pull a thread from an empty collection.');
     }
 
-    /**
-     * Returns the collection size.
-     *
-     * @return int
-     */
+    #[Override]
     public function count(): int
     {
         return count($this->collection);
     }
 
     /**
-     * @inheritDoc
+     * @return ArrayIterator<int, ThreadInterface>
      */
-    public function getIterator(): Traversable
+    #[Override]
+    public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->collection);
     }

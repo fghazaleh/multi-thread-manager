@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager;
 
+use FGhazaleh\MultiThreadManager\Exception\InvalidSettingsException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -27,6 +29,7 @@ class ThreadSettingsTest extends TestCase
         $this->assertSame($pollInterval, $threadSettings->getPollInterval());
     }
 
+    #[Test]
     public function testingCreatingThreadSettingsFromDefault(): void
     {
         $threadSettings = ThreadSettings::createFromDefault();
@@ -36,15 +39,31 @@ class ThreadSettingsTest extends TestCase
     }
 
     #[Test]
-    public function testingThreadSettingsWithLessThanZero(): void
+    public function itShouldNotCapTheThreadSize(): void
     {
-        $threadSize = -1;
-        $threadStartDelay = -1;
-        $pollInterval = -1;
-        $threadSettings = new ThreadSettings($threadSize, $threadStartDelay, $pollInterval);
+        $this->assertSame(50, (new ThreadSettings(50, 0, 0))->getThreadSize());
+    }
 
-        $this->assertSame(20, $threadSettings->getThreadSize());
-        $this->assertSame(0, $threadSettings->getThreadStartDelay());
-        $this->assertSame(0, $threadSettings->getPollInterval());
+    #[Test]
+    #[DataProvider('invalidSettings')]
+    public function itShouldRejectInvalidSettings(int $size, int $delay, int $poll, string $message): void
+    {
+        $this->expectException(InvalidSettingsException::class);
+        $this->expectExceptionMessage($message);
+
+        new ThreadSettings($size, $delay, $poll);
+    }
+
+    /**
+     * @return array<string, array{int, int, int, string}>
+     */
+    public static function invalidSettings(): array
+    {
+        return [
+            'zero thread size' => [0, 0, 0, 'Thread size must be at least 1.'],
+            'negative thread size' => [-1, 0, 0, 'Thread size must be at least 1.'],
+            'negative start delay' => [1, -1, 0, 'Thread start delay must not be negative.'],
+            'negative poll interval' => [1, 0, -1, 'Poll interval must not be negative.'],
+        ];
     }
 }

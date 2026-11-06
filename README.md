@@ -88,18 +88,21 @@ $threadManager->terminate();
 
 ### Register Events/Listeners in Thread Manager
 
+An event can have several listeners; they are called in the order they were registered.
+A thread that exceeds its timeout is stopped and fires `Event::Timeout` only (not `Event::Finished`).
+
 > Register event with class listener.
 ```php
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_STARTED, 
+    \FGhazaleh\MultiThreadManager\Event::Started, 
     new JobStartedListener()
 );
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_FINISHED, 
+    \FGhazaleh\MultiThreadManager\Event::Finished, 
     new JobFinishedListener()
 );
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_TIMEOUT, 
+    \FGhazaleh\MultiThreadManager\Event::Timeout, 
     new JobTimeoutListener()
 );
 ...
@@ -109,7 +112,7 @@ $threadManager->addThread(...)
 > Register event closure listener function.
 ```php
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_STARTED, 
+    \FGhazaleh\MultiThreadManager\Event::Started, 
     function (\FGhazaleh\MultiThreadManager\Contracts\ThreadInterface $thread){
         ...
     }

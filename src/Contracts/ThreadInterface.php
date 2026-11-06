@@ -17,17 +17,12 @@ interface ThreadInterface
 
     public function stop(): ?int;
 
-    /**
-     * Returns the process pid
-     *
-     * @return null|int;
-     */
     public function getPid(): ?int;
 
     public function getSymfonyProcess(): Process;
 
     /**
-     * @return array|null
+     * @return array<string, mixed>|null
      */
     public function getContext(): ?array;
 }

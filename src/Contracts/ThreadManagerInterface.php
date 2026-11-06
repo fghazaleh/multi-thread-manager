@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Contracts;
 
-use FGhazaleh\MultiThreadManager\Exception\InvalidThreadException;
 use Symfony\Component\Process\Process;
 
 interface ThreadManagerInterface
@@ -17,12 +16,9 @@ interface ThreadManagerInterface
     /**
      * Adds Symfony process, shell script command or Thread instance to thread manager.
      *
-     * @param Process|string|ThreadInterface $command
-     * @param array|null $context
-     * @return void
-     * @throws InvalidThreadException
+     * @param array<string, mixed>|null $context
      */
-    public function addThread($command, array $context = null): void;
+    public function addThread(string|Process|ThreadInterface $command, ?array $context = null): void;
 
     /**
      * Wait for all symfony process to finish.
@@ -30,7 +26,7 @@ interface ThreadManagerInterface
     public function wait(): void;
 
     /**
-     * Terminate pending and running threads;
+     * Terminate pending and running threads.
      */
     public function terminate(): void;
 }

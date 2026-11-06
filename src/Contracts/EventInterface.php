@@ -9,29 +9,17 @@ declare(strict_types=1);
 
 namespace FGhazaleh\MultiThreadManager\Contracts;
 
-use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
-use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
+use FGhazaleh\MultiThreadManager\Event;
 
 interface EventInterface
 {
-    const EVENT_STARTED = 'event_started';
-    const EVENT_FINISHED = 'event_finished';
-    const EVENT_TIMEOUT = 'event_timeout';
-
     /**
-     * @param string $event
-     * @param callable|ListenerInterface $listener
-     * @return void
-     * @throws InvalidListenerArgumentException
-     * @throws InvalidEventArgumentException
+     * Adds a listener to the event. An event can have multiple listeners,
+     * which are called in the order they were added.
+     *
+     * @param callable(ThreadInterface): mixed|ListenerInterface $listener
      */
-    public function addListener(string $event, $listener): void;
+    public function addListener(Event $event, callable|ListenerInterface $listener): void;
 
-    /**
-     * @param string $event
-     * @param ThreadInterface $thread
-     * @return void
-     * @throws InvalidEventArgumentException
-     */
-    public function fire(string $event, ThreadInterface $thread): void;
+    public function fire(Event $event, ThreadInterface $thread): void;
 }

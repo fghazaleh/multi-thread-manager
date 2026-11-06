@@ -12,65 +12,29 @@ namespace FGhazaleh\MultiThreadManager\Events;
 use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ListenerInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
-use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
-use FGhazaleh\MultiThreadManager\Exception\InvalidListenerArgumentException;
+use FGhazaleh\MultiThreadManager\Event;
+use Override;
 
 final class EventManager implements EventInterface
 {
-    private $events = [];
+    /** @var array<string, list<callable|ListenerInterface>> */
+    private array $listeners = [];
 
-    /**
-     * @inheritDoc
-     */
-    public function addListener(string $event, $listener): void
+    #[Override]
+    public function addListener(Event $event, callable|ListenerInterface $listener): void
     {
-        $this->throwExceptionIfInvalid($event);
-
-        if (!$listener instanceof ListenerInterface && !is_callable($listener)) {
-            throw new InvalidListenerArgumentException;
-        }
-
-        $this->events[$event] = $listener;
+        $this->listeners[$event->value][] = $listener;
     }
 
-    /**
-     * @inheritDoc
-     * */
-    public function fire(string $event, ThreadInterface $thread): void
+    #[Override]
+    public function fire(Event $event, ThreadInterface $thread): void
     {
-        $this->throwExceptionIfInvalid($event);
-
-        if (!isset($this->events[$event])) {
-            return;
-        }
-
-        $listener = $this->events[$event];
-        if (is_callable($listener)) {
-            $listener($thread);
-        } elseif ($listener instanceof ListenerInterface) {
-            $listener->handle($thread);
-        }
-    }
-
-    private function getSupportedEvents(): array
-    {
-        return [
-            EventInterface::EVENT_STARTED => true,
-            EventInterface::EVENT_FINISHED => true,
-            EventInterface::EVENT_TIMEOUT => true,
-        ];
-    }
-
-    /**
-     * @param string $event
-     * @throws InvalidEventArgumentException
-     */
-    private function throwExceptionIfInvalid(string $event): void
-    {
-        if (!array_key_exists($event, $this->getSupportedEvents())) {
-            throw new InvalidEventArgumentException(
-                sprintf('Invalid event [%s].', $event)
-            );
+        foreach ($this->listeners[$event->value] ?? [] as $listener) {
+            if ($listener instanceof ListenerInterface) {
+                $listener->handle($thread);
+            } else {
+                $listener($thread);
+            }
         }
     }
 }
