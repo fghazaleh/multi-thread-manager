@@ -19,7 +19,7 @@ class Thread implements ThreadInterface
      * @param array<string, mixed>|null $context
      */
     public function __construct(
-        private readonly Process $command,
+        private Process $command,
         private readonly ?array $context = null,
     ) {
     }
@@ -47,6 +47,14 @@ class Thread implements ThreadInterface
     #[Override]
     public function start(): void
     {
+        $this->command->start();
+    }
+
+    #[Override]
+    public function restart(): void
+    {
+        // Cloning a Symfony process resets its state while keeping its configuration (timeout, env, ...).
+        $this->command = clone $this->command;
         $this->command->start();
     }
 

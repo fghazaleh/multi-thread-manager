@@ -19,12 +19,14 @@ final readonly class ThreadSettings implements ThreadSettingsInterface
      * @param int $threadSize Maximum number of threads running in parallel (at least 1).
      * @param int $threadStartDelay Delay in milliseconds before a thread is started.
      * @param int $pollInterval Interval in milliseconds between two checks of the running threads.
+     * @param bool $failFast Terminate everything as soon as one thread fails or times out.
      * @throws InvalidSettingsException
      */
     public function __construct(
         private int $threadSize,
         private int $threadStartDelay,
         private int $pollInterval,
+        private bool $failFast = false,
     ) {
         if ($threadSize < 1) {
             throw new InvalidSettingsException('Thread size must be at least 1.');
@@ -58,5 +60,11 @@ final readonly class ThreadSettings implements ThreadSettingsInterface
     public function getPollInterval(): int
     {
         return $this->pollInterval;
+    }
+
+    #[Override]
+    public function isFailFast(): bool
+    {
+        return $this->failFast;
     }
 }
