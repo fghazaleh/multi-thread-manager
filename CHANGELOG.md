@@ -3,6 +3,9 @@
 ## 2.0.0 (unreleased)
 
 ### Added
+- `ThreadManager::onOutput()` streams stdout / stderr of running threads in chunks (`OutputType`).
+- `ThreadManager::handleSignals()` / `isInterrupted()`: graceful shutdown on SIGINT / SIGTERM (needs `ext-pcntl`).
+- PSR-3 logging: pass a `Psr\Log\LoggerInterface` to `ThreadManager::create()` or the constructor. Adds the `psr/log` dependency.
 - `ThreadResult` / `ThreadStatus`: `wait()` now returns a result per thread (exit code, output, error output, duration, context); also available via `getResults()`.
 - `Event::Failed`, fired for a non-zero exit code. `Event::Finished` now only fires for successful threads.
 - Retries with backoff: `addThread($command, $context, new RetryPolicy(maxRetries: 3, delay: 200, multiplier: 2.0))` and `Event::Retrying`.
