@@ -121,6 +121,51 @@ $threadManager->addThread(
 - The backoff does not block: other threads keep running (and use the free slot) while a thread waits.
 - The `ThreadResult` describes the last attempt. With fail-fast, termination happens only after the retries are exhausted.
 
+### Stream output while threads run
+`onOutput()` receives the stdout / stderr of running threads in chunks, instead of waiting for the result.
+The last chunk is delivered before the thread's `Finished` / `Failed` / `Timeout` event.
+```php
+use FGhazaleh\MultiThreadManager\OutputType;
+
+$threadManager->onOutput(
+    function (\FGhazaleh\MultiThreadManager\Contracts\ThreadInterface $thread, OutputType $type, string $chunk) {
+        // $type is OutputType::Stdout or OutputType::Stderr
+        echo $chunk;
+    }
+);
+```
+`$result->output` and `$result->errorOutput` still contain the complete output.
+
+### Graceful shutdown (SIGINT / SIGTERM)
+```php
+$threadManager = ThreadManager::create(10)->handleSignals();
+$threadManager->addThread('php job.php');
+$results = $threadManager->wait(); // returns after Ctrl+C / kill instead of leaving orphaned processes
+
+if ($threadManager->isInterrupted()) {
+    // stopped by a signal; terminated threads produce no result
+}
+```
+- Requires the `pcntl` extension (Linux / macOS, not Windows); `handleSignals()` throws a `LogicException` without it.
+- It replaces any existing SIGINT / SIGTERM handler of the process.
+
+### Logging (PSR-3)
+Pass any [PSR-3](https://www.php-fig.org/psr/psr-3/) logger:
+```php
+$threadManager = ThreadManager::create(10, logger: $logger);
+// or
+new ThreadManager($settings, $logger);
+```
+| Level | Message |
+|-------|---------|
+| info | `Thread started.`, `Thread restarted.` (retry), `Thread finished.` |
+| notice | `Thread failed, retrying.` (with `retry`, `max_retries`, `delay_ms`) |
+| error | `Thread failed.` |
+| warning | `Thread timed out.`, `Signal received, terminating all threads.` |
+
+The log context contains `pid`, `command` and your thread `context`; finished / failed / timed out threads also
+have `exit_code` and `duration` (seconds). Without a logger nothing is logged.
+
 ### Fail fast
 Terminate all pending and running threads as soon as one thread fails or times out:
 ```php

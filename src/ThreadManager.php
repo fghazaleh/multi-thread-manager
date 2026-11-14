@@ -17,7 +17,10 @@ use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerEventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
 use FGhazaleh\MultiThreadManager\Events\EventManager;
+use LogicException;
 use Override;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
@@ -42,8 +45,18 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     /** @var array<int, array{thread: ThreadInterface, readyAt: float}> threads waiting for their next attempt */
     private array $waitingForRetry = [];
 
-    public function __construct(private readonly ThreadSettingsInterface $threadSettings)
-    {
+    /** @var list<callable(ThreadInterface, OutputType, string): mixed> */
+    private array $outputListeners = [];
+
+    private bool $interrupted = false;
+
+    private readonly LoggerInterface $logger;
+
+    public function __construct(
+        private readonly ThreadSettingsInterface $threadSettings,
+        ?LoggerInterface $logger = null,
+    ) {
+        $this->logger = $logger ?? new NullLogger();
         $this->pendingThreads = new ThreadCollection();
         $this->runningThreads = new ThreadCollection();
         $this->events = new EventManager();
@@ -52,11 +65,59 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     /**
      * Create a new instance of thread manager.
      */
-    public static function create(int $threadSize, bool $failFast = false): self
+    public static function create(int $threadSize, bool $failFast = false, ?LoggerInterface $logger = null): self
     {
         return new self(
             new ThreadSettings(threadSize: $threadSize, threadStartDelay: 0, pollInterval: 120, failFast: $failFast),
+            $logger,
         );
+    }
+
+    /**
+     * Registers a callback that receives the output of running threads while they run,
+     * in chunks, instead of only at the end. The last chunk is delivered before the
+     * thread's Finished / Failed / Timeout event fires.
+     *
+     * @param callable(ThreadInterface, OutputType, string): mixed $callback
+     */
+    public function onOutput(callable $callback): void
+    {
+        $this->outputListeners[] = $callback;
+    }
+
+    /**
+     * Terminates all threads when the process receives SIGINT or SIGTERM, so that
+     * wait() returns instead of leaving orphaned child processes behind.
+     *
+     * Replaces any existing SIGINT / SIGTERM handler. Requires the pcntl extension
+     * (not available on Windows).
+     *
+     * @throws LogicException when the pcntl extension is not available
+     */
+    public function handleSignals(): self
+    {
+        if (!function_exists('pcntl_signal') || !function_exists('pcntl_async_signals')) {
+            throw new LogicException('Signal handling requires the pcntl extension.');
+        }
+
+        pcntl_async_signals(true);
+        $handler = function (int $signal): void {
+            $this->interrupted = true;
+            $this->logger->warning('Signal received, terminating all threads.', ['signal' => $signal]);
+            $this->terminate();
+        };
+        pcntl_signal(SIGINT, $handler);
+        pcntl_signal(SIGTERM, $handler);
+
+        return $this;
+    }
+
+    /**
+     * Whether the manager was stopped by a signal (see handleSignals()).
+     */
+    public function isInterrupted(): bool
+    {
+        return $this->interrupted;
     }
 
     #[Override]
@@ -128,6 +189,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             $this->startedAt[spl_object_id($thread)] = hrtime(true) / 1e9;
             $thread->start();
 
+            $this->logger->info('Thread started.', $this->logContext($thread));
             $this->events->fire(Event::Started, $thread);
             $this->track($thread);
         }
@@ -165,6 +227,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             $thread = $waiting['thread'];
             $this->startedAt[$id] = hrtime(true) / 1e9;
             $thread->restart();
+            $this->logger->info('Thread restarted.', $this->logContext($thread) + ['retry' => $this->retries[$id] ?? 0]);
             $this->track($thread);
         }
     }
@@ -188,6 +251,11 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             'readyAt' => hrtime(true) / 1e9 + $policy->delayFor($retries) / 1000,
         ];
         unset($this->startedAt[$id]);
+        $this->logger->notice('Thread failed, retrying.', $this->logContext($thread) + [
+            'retry' => $retries,
+            'max_retries' => $policy->maxRetries,
+            'delay_ms' => $policy->delayFor($retries),
+        ]);
         $this->events->fire(Event::Retrying, $thread);
 
         return true;
@@ -241,16 +309,24 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      */
     private function checkRunningThread(?int $pid, ThreadInterface $thread): void
     {
+        if ($this->interrupted) {
+            return;
+        }
+
         if ($this->hasTimedOut($thread)) {
             $thread->stop();
             $status = ThreadStatus::TimedOut;
         } elseif ($thread->getSymfonyProcess()->isRunning()) {
+            $this->flushOutput($thread);
+
             return;
         } else {
             $status = $thread->getSymfonyProcess()->getExitCode() === 0
                 ? ThreadStatus::Succeeded
                 : ThreadStatus::Failed;
         }
+
+        $this->flushOutput($thread);
 
         if ($pid !== null) {
             $this->runningThreads->remove($pid);
@@ -263,7 +339,9 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             return;
         }
 
-        $this->results[] = $this->createResult($thread, $status);
+        $result = $this->createResult($thread, $status);
+        $this->results[] = $result;
+        $this->logResult($result);
         $this->events->fire(
             match ($status) {
                 ThreadStatus::Succeeded => Event::Finished,
@@ -297,6 +375,55 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             errorOutput: $process->getErrorOutput(),
             duration: $startedAt === null ? 0.0 : hrtime(true) / 1e9 - $startedAt,
         );
+    }
+
+    /**
+     * Delivers the output produced since the last call to the output listeners.
+     */
+    private function flushOutput(ThreadInterface $thread): void
+    {
+        if ($this->outputListeners === []) {
+            return;
+        }
+
+        $process = $thread->getSymfonyProcess();
+        foreach ([
+            [OutputType::Stdout, $process->getIncrementalOutput()],
+            [OutputType::Stderr, $process->getIncrementalErrorOutput()],
+        ] as [$type, $chunk]) {
+            if ($chunk === '') {
+                continue;
+            }
+            foreach ($this->outputListeners as $listener) {
+                $listener($thread, $type, $chunk);
+            }
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function logContext(ThreadInterface $thread): array
+    {
+        return [
+            'pid' => $thread->getPid(),
+            'command' => $thread->getSymfonyProcess()->getCommandLine(),
+            'context' => $thread->getContext(),
+        ];
+    }
+
+    private function logResult(ThreadResult $result): void
+    {
+        $context = $this->logContext($result->thread) + [
+            'exit_code' => $result->exitCode,
+            'duration' => round($result->duration, 3),
+        ];
+
+        match ($result->status) {
+            ThreadStatus::Succeeded => $this->logger->info('Thread finished.', $context),
+            ThreadStatus::Failed => $this->logger->error('Thread failed.', $context),
+            ThreadStatus::TimedOut => $this->logger->warning('Thread timed out.', $context),
+        };
     }
 
     private function hasTimedOut(ThreadInterface $thread): bool

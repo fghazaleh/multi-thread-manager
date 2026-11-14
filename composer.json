@@ -27,7 +27,11 @@
     ],
     "require": {
         "php": "^8.4",
-        "symfony/process": "^7.4 || ^8.0"
+        "symfony/process": "^7.4 || ^8.0",
+        "psr/log": "^3.0"
+    },
+    "suggest": {
+        "ext-pcntl": "Required for ThreadManager::handleSignals() (graceful shutdown on SIGINT/SIGTERM)"
     },
     "autoload": {
         "psr-4": {
