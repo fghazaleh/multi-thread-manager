@@ -9,7 +9,7 @@
 - Fail-fast mode (`ThreadSettings::$failFast`, `ThreadManager::create($size, failFast: true)`).
 
 ### Breaking changes
-- Requires PHP 8.5 (PHP 8.0 stays on the `dev-8.0` branch).
+- Requires PHP 8.4 or newer (`^8.4`); CI runs on 8.4 and 8.5. PHP 8.0 stays on the `dev-8.0` branch.
 - Events are now the `FGhazaleh\MultiThreadManager\Event` backed enum (`Started`, `Finished`, `Timeout`);
   the `EventInterface::EVENT_*` constants, `InvalidEventArgumentException`, `InvalidListenerArgumentException`
   and `InvalidThreadException` are removed in favour of native types.

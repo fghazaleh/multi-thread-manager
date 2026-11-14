@@ -4,9 +4,21 @@ A Library to handle a multiple Symfony process component,
 by creating a command which can be handled in asynchronous (threads).
 
 ## Supported PHP Versions
-- PHP 8.5
 
-For PHP 8.0 use the `dev-8.0` branch.
+| PHP version | Supported | Notes |
+|-------------|-----------|-------|
+| 8.5         | Yes       | Tested in CI |
+| 8.4         | Yes       | Tested in CI (minimum version) |
+| 8.3 and lower | No      | Not supported by this version |
+| 8.0         | Legacy    | Use the `dev-8.0` branch |
+
+The library requires `"php": "^8.4"`, so Composer installs it on PHP 8.4 and any newer 8.x release.
+CI runs the test suite on both 8.4 and 8.5.
+
+You can try a specific version with Docker:
+```
+$ docker build --build-arg PHP_VERSION=8.4 -t multi-thread-manager .
+```
 
 ## Index
 - [Installation](#installation)
