@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -28,7 +29,7 @@ class ThreadManagerTest extends TestCase
     public function itShouldCreateThreadsManagerInstance(): void
     {
         $threadManager = new ThreadManager(
-            new ThreadSettings(10, 0, 0)
+            new ThreadSettings(10, 0, 0),
         );
         $this->assertInstanceOf(ThreadManagerInterface::class, $threadManager);
     }
@@ -98,7 +99,7 @@ class ThreadManagerTest extends TestCase
     public function itShouldAbleToAddThreadClass(): void
     {
         $testingCommand = 'php -r "echo 1;usleep(500);exit(0);"';
-        $thread = new class($testingCommand) extends Thread {
+        $thread = new class ($testingCommand) extends Thread {
             public function __construct(string $command)
             {
                 parent::__construct(Process::fromShellCommandline($command), []);
@@ -277,7 +278,7 @@ class ThreadManagerTest extends TestCase
         // Appends a line per attempt and succeeds once the file has three lines (the 3rd attempt).
         $command = sprintf(
             'php -r "file_put_contents(%1$s, \'x\' . PHP_EOL, FILE_APPEND); exit(count(file(%1$s)) >= 3 ? 0 : 1);"',
-            var_export($marker, true)
+            var_export($marker, true),
         );
 
         $threadManager = ThreadManager::create(1);

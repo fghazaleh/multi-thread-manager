@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -23,8 +24,7 @@ final readonly class ThreadResult
         public string $output,
         public string $errorOutput,
         public float $duration,
-    ) {
-    }
+    ) {}
 
     public function isSuccessful(): bool
     {

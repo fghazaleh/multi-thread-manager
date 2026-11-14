@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -54,7 +55,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
     public static function create(int $threadSize, bool $failFast = false): self
     {
         return new self(
-            new ThreadSettings(threadSize: $threadSize, threadStartDelay: 0, pollInterval: 120, failFast: $failFast)
+            new ThreadSettings(threadSize: $threadSize, threadStartDelay: 0, pollInterval: 120, failFast: $failFast),
         );
     }
 
@@ -269,7 +270,7 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
                 ThreadStatus::Failed => Event::Failed,
                 ThreadStatus::TimedOut => Event::Timeout,
             },
-            $thread
+            $thread,
         );
 
         if ($status !== ThreadStatus::Succeeded && $this->threadSettings->isFailFast()) {

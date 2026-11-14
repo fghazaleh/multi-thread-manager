@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -24,8 +25,7 @@ class Thread implements ThreadInterface
     public function __construct(
         private Process $command,
         private readonly ?array $context = null,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, mixed>|null $context

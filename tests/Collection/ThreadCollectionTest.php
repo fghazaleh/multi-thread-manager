@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -10,9 +11,10 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager\Collection;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Mockery;
+
 class ThreadCollectionTest extends TestCase
 {
     protected function tearDown(): void

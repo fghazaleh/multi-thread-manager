@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -11,6 +12,4 @@ namespace FGhazaleh\MultiThreadManager\Exception;
 
 use InvalidArgumentException;
 
-final class InvalidSettingsException extends InvalidArgumentException
-{
-}
+final class InvalidSettingsException extends InvalidArgumentException {}
