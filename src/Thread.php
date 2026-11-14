@@ -13,6 +13,9 @@ use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use Override;
 use Symfony\Component\Process\Process;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class Thread implements ThreadInterface
 {
     /**
