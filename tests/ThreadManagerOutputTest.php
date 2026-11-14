@@ -30,8 +30,8 @@ class ThreadManagerOutputTest extends TestCase
         $threadManager->addThread(self::COMMAND);
         $threadManager->wait();
 
-        $stdout = array_values(array_filter($chunks, fn (array $c) => $c[0] === OutputType::Stdout));
-        $stderr = array_values(array_filter($chunks, fn (array $c) => $c[0] === OutputType::Stderr));
+        $stdout = array_values(array_filter($chunks, fn(array $c) => $c[0] === OutputType::Stdout));
+        $stderr = array_values(array_filter($chunks, fn(array $c) => $c[0] === OutputType::Stderr));
 
         $this->assertSame(['a', 'b'], array_column($stdout, 1));
         $this->assertSame(['e'], array_column($stderr, 1));
@@ -59,8 +59,7 @@ class ThreadManagerOutputTest extends TestCase
     public function itShouldNotAffectTheCollectedResultOutput(): void
     {
         $threadManager = ThreadManager::create(1);
-        $threadManager->onOutput(function () {
-        });
+        $threadManager->onOutput(function () {});
 
         $threadManager->addThread(self::COMMAND);
         $results = $threadManager->wait();
