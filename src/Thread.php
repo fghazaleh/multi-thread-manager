@@ -14,9 +14,6 @@ use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use Override;
 use Symfony\Component\Process\Process;
 
-/**
- * @phpstan-consistent-constructor
- */
 class Thread implements ThreadInterface
 {
     /**
@@ -30,9 +27,9 @@ class Thread implements ThreadInterface
     /**
      * @param array<string, mixed>|null $context
      */
-    public static function createFromCommand(string $command, ?array $context = null): static
+    public static function createFromCommand(string $command, ?array $context = null): self
     {
-        return new static(Process::fromShellCommandline($command), $context);
+        return new self(Process::fromShellCommandline($command), $context);
     }
 
     #[Override]
