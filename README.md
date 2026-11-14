@@ -4,9 +4,21 @@ A Library to handle a multiple Symfony process component,
 by creating a command which can be handled in asynchronous (threads).
 
 ## Supported PHP Versions
-- PHP 8.5
 
-For PHP 8.0 use the `dev-8.0` branch.
+| PHP version | Supported | Notes |
+|-------------|-----------|-------|
+| 8.5         | Yes       | Tested in CI |
+| 8.4         | Yes       | Tested in CI (minimum version) |
+| 8.3 and lower | No      | Not supported by this version |
+| 8.0         | Legacy    | Use the `dev-8.0` branch |
+
+The library requires `"php": "^8.4"`, so Composer installs it on PHP 8.4 and any newer 8.x release.
+CI runs the test suite on both 8.4 and 8.5.
+
+You can try a specific version with Docker:
+```
+$ docker build --build-arg PHP_VERSION=8.4 -t multi-thread-manager .
+```
 
 ## Index
 - [Installation](#installation)
@@ -77,9 +89,46 @@ $threadManager->addThread('php -r "echo 123; exit(0);"', ['data' => 'some data']
 ```
 
 ### Wait for threads
+`wait()` blocks until every thread is done and returns a `ThreadResult` for each one, in completion order.
 ```php
-$threadManager->wait();
+$results = $threadManager->wait();
+
+foreach ($results as $result) {
+    $result->status;       // ThreadStatus::Succeeded | Failed | TimedOut
+    $result->exitCode;     // ?int
+    $result->output;       // stdout
+    $result->errorOutput;  // stderr
+    $result->duration;     // seconds
+    $result->getContext(); // the context passed to addThread()
+    $result->isSuccessful();
+}
 ```
+The same list is available later with `$threadManager->getResults()`.
+
+### Retry failed threads
+A thread that fails (non-zero exit code) or times out can be retried with a `RetryPolicy`:
+```php
+use FGhazaleh\MultiThreadManager\RetryPolicy;
+
+// up to 3 retries, waiting 200ms, 400ms, 800ms (delay * multiplier^(n-1))
+$threadManager->addThread(
+    'php job.php',
+    ['id' => 42],
+    new RetryPolicy(maxRetries: 3, delay: 200, multiplier: 2.0)
+);
+```
+- `Event::Retrying` fires every time a retry is scheduled; `Failed` / `Timeout` only fire after the last attempt.
+- The backoff does not block: other threads keep running (and use the free slot) while a thread waits.
+- The `ThreadResult` describes the last attempt. With fail-fast, termination happens only after the retries are exhausted.
+
+### Fail fast
+Terminate all pending and running threads as soon as one thread fails or times out:
+```php
+$threadManager = ThreadManager::create(10, failFast: true);
+// or
+new ThreadSettings(threadSize: 10, threadStartDelay: 0, pollInterval: 120, failFast: true);
+```
+Threads terminated this way do not produce a result.
 
 ### Terminate threads
 ```php
@@ -88,18 +137,26 @@ $threadManager->terminate();
 
 ### Register Events/Listeners in Thread Manager
 
+An event can have several listeners; they are called in the order they were registered.
+Exactly one of these fires per thread: `Event::Finished` (exit code 0), `Event::Failed` (non-zero exit code)
+or `Event::Timeout` (the thread exceeded its timeout and was stopped).
+
 > Register event with class listener.
 ```php
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_STARTED, 
+    \FGhazaleh\MultiThreadManager\Event::Started, 
     new JobStartedListener()
 );
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_FINISHED, 
+    \FGhazaleh\MultiThreadManager\Event::Finished, 
     new JobFinishedListener()
 );
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_TIMEOUT, 
+    \FGhazaleh\MultiThreadManager\Event::Failed, 
+    new JobFailedListener()
+);
+$threadManager->listen(
+    \FGhazaleh\MultiThreadManager\Event::Timeout, 
     new JobTimeoutListener()
 );
 ...
@@ -109,7 +166,7 @@ $threadManager->addThread(...)
 > Register event closure listener function.
 ```php
 $threadManager->listen(
-    \FGhazaleh\MultiThreadManager\Contracts\EventInterface::EVENT_STARTED, 
+    \FGhazaleh\MultiThreadManager\Event::Started, 
     function (\FGhazaleh\MultiThreadManager\Contracts\ThreadInterface $thread){
         ...
     }

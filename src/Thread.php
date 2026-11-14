@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -10,49 +11,62 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager;
 
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
+use Override;
 use Symfony\Component\Process\Process;
+
 class Thread implements ThreadInterface
 {
-    private Process $command;
+    /**
+     * @param array<string, mixed>|null $context
+     */
+    public function __construct(
+        private Process $command,
+        private readonly ?array $context = null,
+    ) {}
 
-    private ?array $context;
-
-    public function __construct(Process $command, array $context = null)
+    /**
+     * @param array<string, mixed>|null $context
+     */
+    public static function createFromCommand(string $command, ?array $context = null): self
     {
-        $this->command = $command;
-        $this->context = $context;
+        return new self(Process::fromShellCommandline($command), $context);
     }
 
-    public static function createFromCommand(string $command, array $context = null): ThreadInterface
-    {
-        return new static(Process::fromShellCommandline($command), $context);
-    }
-
+    #[Override]
     public function getSymfonyProcess(): Process
     {
         return $this->command;
     }
 
+    #[Override]
     public function getContext(): ?array
     {
         return $this->context;
     }
 
+    #[Override]
     public function start(): void
     {
-        $this->getSymfonyProcess()->start();
+        $this->command->start();
     }
 
+    #[Override]
+    public function restart(): void
+    {
+        // Cloning a Symfony process resets its state while keeping its configuration (timeout, env, ...).
+        $this->command = clone $this->command;
+        $this->command->start();
+    }
+
+    #[Override]
     public function stop(): ?int
     {
-        return $this->getSymfonyProcess()->stop();
+        return $this->command->stop();
     }
 
-    /**
-     * @inheritDoc
-     */
+    #[Override]
     public function getPid(): ?int
     {
-        return $this->getSymfonyProcess()->getPid();
+        return $this->command->getPid();
     }
 }

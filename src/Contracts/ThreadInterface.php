@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -18,16 +19,16 @@ interface ThreadInterface
     public function stop(): ?int;
 
     /**
-     * Returns the process pid
-     *
-     * @return null|int;
+     * Starts a fresh attempt of an already finished thread (used for retries).
      */
+    public function restart(): void;
+
     public function getPid(): ?int;
 
     public function getSymfonyProcess(): Process;
 
     /**
-     * @return array|null
+     * @return array<string, mixed>|null
      */
     public function getContext(): ?array;
 }

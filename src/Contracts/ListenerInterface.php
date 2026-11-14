@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -13,10 +14,6 @@ interface ListenerInterface
 {
     /**
      * Handles the received event.
-     *
-     * @param ThreadInterface $thread
-     *
-     * @return void
      */
     public function handle(ThreadInterface $thread): void;
 }

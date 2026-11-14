@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Multi Threading Manager (PHP package)
  *
@@ -10,113 +11,113 @@ declare(strict_types=1);
 namespace FGhazaleh\MultiThreadManager;
 
 use FGhazaleh\MultiThreadManager\Collection\ThreadCollection;
-use FGhazaleh\MultiThreadManager\Contracts\EventInterface;
+use FGhazaleh\MultiThreadManager\Contracts\ListenerInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerEventInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadManagerInterface;
 use FGhazaleh\MultiThreadManager\Contracts\ThreadSettingsInterface;
 use FGhazaleh\MultiThreadManager\Events\EventManager;
-use FGhazaleh\MultiThreadManager\Exception\InvalidEventArgumentException;
-use FGhazaleh\MultiThreadManager\Exception\InvalidThreadException;
+use Override;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventInterface
 {
-    private ThreadCollection $pendingThreads;
-    private ThreadCollection $runningThreads;
-    private ThreadSettingsInterface $threadSettings;
+    private readonly ThreadCollection $pendingThreads;
+    private readonly ThreadCollection $runningThreads;
+    private readonly EventManager $events;
 
-    private EventManager $events;
+    /** @var list<ThreadResult> */
+    private array $results = [];
 
-    public function __construct(ThreadSettingsInterface $threadSettings)
+    /** @var array<int, float> start time (hrtime, seconds) by spl_object_id of the thread */
+    private array $startedAt = [];
+
+    /** @var array<int, RetryPolicy> retry policy by spl_object_id of the thread */
+    private array $retryPolicies = [];
+
+    /** @var array<int, int> number of retries already scheduled by spl_object_id of the thread */
+    private array $retries = [];
+
+    /** @var array<int, array{thread: ThreadInterface, readyAt: float}> threads waiting for their next attempt */
+    private array $waitingForRetry = [];
+
+    public function __construct(private readonly ThreadSettingsInterface $threadSettings)
     {
-        $this->threadSettings = $threadSettings;
         $this->pendingThreads = new ThreadCollection();
         $this->runningThreads = new ThreadCollection();
         $this->events = new EventManager();
     }
 
     /**
-     * Create a new instance of thread manager
-     *
-     * @param int $threadSize
-     * @return ThreadManager
+     * Create a new instance of thread manager.
      */
-    public static function create(int $threadSize): ThreadManager
+    public static function create(int $threadSize, bool $failFast = false): self
     {
-        return new static(
-            new ThreadSettings($threadSize, 0, 120)
+        return new self(
+            new ThreadSettings(threadSize: $threadSize, threadStartDelay: 0, pollInterval: 120, failFast: $failFast),
         );
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function addThread($command, array $context = null): void
+    #[Override]
+    public function addThread(string|Process|ThreadInterface $command, ?array $context = null, ?RetryPolicy $retry = null): void
     {
-        $this->pendingThreads->push(
-            $this->createThread($command, $context)
-        );
+        $thread = $this->createThread($command, $context);
+        if ($retry !== null) {
+            $this->retryPolicies[spl_object_id($thread)] = $retry;
+        }
+        $this->pendingThreads->push($thread);
         $this->executeNextPendingThread();
         $this->checkAllRunningThreads();
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function listen(string $event, $listener): void
+    #[Override]
+    public function listen(Event $event, callable|ListenerInterface $listener): void
     {
         $this->events->addListener($event, $listener);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function wait(): void
+    #[Override]
+    public function wait(): array
     {
         while ($this->hasUnfinishedThreads()) {
             $this->sleep($this->threadSettings->getPollInterval());
             $this->checkAllRunningThreads();
         }
+
+        return $this->results;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+    #[Override]
+    public function getResults(): array
+    {
+        return $this->results;
+    }
+
+    #[Override]
     public function terminate(): void
     {
         $this->pendingThreads->clear();
-        /**
-         * @var ThreadInterface $thread
-         * */
         foreach ($this->runningThreads as $thread) {
-            $pid = $thread->getPid();
             $thread->stop();
-            if ($pid === null) {
-                continue;
-            }
-            $this->runningThreads->remove($pid);
         }
-
         $this->runningThreads->clear();
+        $this->startedAt = [];
+        $this->waitingForRetry = [];
     }
 
     /**
      * Returns whether the manager still has unfinished threads.
-     *
-     * @return bool
      */
     public function hasUnfinishedThreads(): bool
     {
-        return $this->pendingThreads->count() > 0 || $this->runningThreads->count() > 0;
+        return $this->pendingThreads->count() > 0
+            || $this->runningThreads->count() > 0
+            || $this->waitingForRetry !== [];
     }
 
     /**
      * Executes the next pending thread, if the limit of parallel tasks is not yet reached.
-     *
-     * @return void;
-     * @throws InvalidEventArgumentException
      */
     private function executeNextPendingThread(): void
     {
@@ -124,38 +125,86 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
             $this->sleep($this->threadSettings->getThreadStartDelay());
 
             $thread = $this->pendingThreads->pull();
+            $this->startedAt[spl_object_id($thread)] = hrtime(true) / 1e9;
             $thread->start();
 
-            $this->events->fire(EventInterface::EVENT_STARTED, $thread);
-            $pid = $thread->getPid();
-
-            if ($pid === null) {
-                // The task finished before we were able to check its process id.
-                $this->checkRunningThread($pid, $thread);
-            } else {
-                $this->runningThreads->push($thread);
-            }
+            $this->events->fire(Event::Started, $thread);
+            $this->track($thread);
         }
+    }
+
+    /**
+     * Tracks a started thread by its pid, or checks it right away when it already finished.
+     */
+    private function track(ThreadInterface $thread): void
+    {
+        $pid = $thread->getPid();
+
+        if ($pid === null) {
+            // The task finished before we were able to check its process id.
+            $this->checkRunningThread($pid, $thread);
+        } else {
+            $this->runningThreads->push($thread, $pid);
+        }
+    }
+
+    /**
+     * Restarts the threads whose retry delay elapsed, as far as free slots are available.
+     */
+    private function startDueRetries(): void
+    {
+        foreach ($this->waitingForRetry as $id => $waiting) {
+            if (!$this->hasFreeSlot()) {
+                return;
+            }
+            if ($waiting['readyAt'] > hrtime(true) / 1e9) {
+                continue;
+            }
+
+            unset($this->waitingForRetry[$id]);
+            $thread = $waiting['thread'];
+            $this->startedAt[$id] = hrtime(true) / 1e9;
+            $thread->restart();
+            $this->track($thread);
+        }
+    }
+
+    /**
+     * Schedules the next attempt of a failed thread. Returns false when no retries are left.
+     */
+    private function scheduleRetry(ThreadInterface $thread): bool
+    {
+        $id = spl_object_id($thread);
+        $policy = $this->retryPolicies[$id] ?? null;
+        $retries = $this->retries[$id] ?? 0;
+
+        if ($policy === null || $retries >= $policy->maxRetries) {
+            return false;
+        }
+
+        $this->retries[$id] = ++$retries;
+        $this->waitingForRetry[$id] = [
+            'thread' => $thread,
+            'readyAt' => hrtime(true) / 1e9 + $policy->delayFor($retries) / 1000,
+        ];
+        unset($this->startedAt[$id]);
+        $this->events->fire(Event::Retrying, $thread);
+
+        return true;
     }
 
     /**
      * Creates a thread instance based on the command param.
      *
-     * @param $command
-     * @param array|null $context
-     * @return ThreadInterface
-     * @throws InvalidThreadException
+     * @param array<string, mixed>|null $context
      */
-    private function createThread($command, array $context = null): ThreadInterface
+    private function createThread(string|Process|ThreadInterface $command, ?array $context): ThreadInterface
     {
-        if ($command instanceof ThreadInterface) {
-            return $command;
-        } elseif ($command instanceof Process) {
-            return new Thread($command, $context);
-        } elseif (is_string($command)) {
-            return Thread::createFromCommand($command, $context);
-        }
-        throw new InvalidThreadException('Invalid thread type.');
+        return match (true) {
+            $command instanceof ThreadInterface => $command,
+            $command instanceof Process => new Thread($command, $context),
+            default => Thread::createFromCommand($command, $context),
+        };
     }
 
     /**
@@ -165,8 +214,12 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
      */
     private function canExecuteNextPendingThread(): bool
     {
-        return $this->pendingThreads->count() > 0 &&
-            $this->runningThreads->count() < $this->threadSettings->getThreadSize();
+        return $this->pendingThreads->count() > 0 && $this->hasFreeSlot();
+    }
+
+    private function hasFreeSlot(): bool
+    {
+        return $this->runningThreads->count() < $this->threadSettings->getThreadSize();
     }
 
     /**
@@ -177,40 +230,84 @@ final class ThreadManager implements ThreadManagerInterface, ThreadManagerEventI
         foreach ($this->runningThreads as $pid => $thread) {
             $this->checkRunningThread($pid, $thread);
         }
+        $this->startDueRetries();
     }
 
     /**
-     * Checks the thread whether it has finished.
+     * Checks the thread whether it has finished, failed or timed out.
      *
-     * @param int|null $pid
-     * @param ThreadInterface $thread
-     * @throws Exception\InvalidEventArgumentException
+     * A timed out thread is stopped and removed. A failed or timed out thread with retries left fires
+     * Retrying and waits for its next attempt; otherwise exactly one of Finished, Failed or Timeout is fired.
      */
     private function checkRunningThread(?int $pid, ThreadInterface $thread): void
     {
-        $this->checkTaskTimeout($thread);
-        if (!$thread->getSymfonyProcess()->isRunning()) {
-            $this->events->fire(EventInterface::EVENT_FINISHED, $thread);
-            if ($pid !== null) {
-                $this->runningThreads->remove($pid);
-            }
-            $this->executeNextPendingThread();
+        if ($this->hasTimedOut($thread)) {
+            $thread->stop();
+            $status = ThreadStatus::TimedOut;
+        } elseif ($thread->getSymfonyProcess()->isRunning()) {
+            return;
+        } else {
+            $status = $thread->getSymfonyProcess()->getExitCode() === 0
+                ? ThreadStatus::Succeeded
+                : ThreadStatus::Failed;
         }
+
+        if ($pid !== null) {
+            $this->runningThreads->remove($pid);
+        }
+
+        if ($status !== ThreadStatus::Succeeded && $this->scheduleRetry($thread)) {
+            $this->startDueRetries();
+            $this->executeNextPendingThread();
+
+            return;
+        }
+
+        $this->results[] = $this->createResult($thread, $status);
+        $this->events->fire(
+            match ($status) {
+                ThreadStatus::Succeeded => Event::Finished,
+                ThreadStatus::Failed => Event::Failed,
+                ThreadStatus::TimedOut => Event::Timeout,
+            },
+            $thread,
+        );
+
+        if ($status !== ThreadStatus::Succeeded && $this->threadSettings->isFailFast()) {
+            $this->terminate();
+
+            return;
+        }
+
+        $this->executeNextPendingThread();
     }
 
-    /**
-     * Checks whether the task already timed out.
-     *
-     * @param ThreadInterface $thread
-     * @throws InvalidEventArgumentException
-     */
-    private function checkTaskTimeout(ThreadInterface $thread): void
+    private function createResult(ThreadInterface $thread, ThreadStatus $status): ThreadResult
+    {
+        $process = $thread->getSymfonyProcess();
+        $id = spl_object_id($thread);
+        $startedAt = $this->startedAt[$id] ?? null;
+        unset($this->startedAt[$id]);
+
+        return new ThreadResult(
+            thread: $thread,
+            status: $status,
+            exitCode: $process->getExitCode(),
+            output: $process->getOutput(),
+            errorOutput: $process->getErrorOutput(),
+            duration: $startedAt === null ? 0.0 : hrtime(true) / 1e9 - $startedAt,
+        );
+    }
+
+    private function hasTimedOut(ThreadInterface $thread): bool
     {
         try {
             $thread->getSymfonyProcess()->checkTimeout();
-        } catch (ProcessTimedOutException $exception) {
-            $this->events->fire(EventInterface::EVENT_TIMEOUT, $thread);
+        } catch (ProcessTimedOutException) {
+            return true;
         }
+
+        return false;
     }
 
     /**
